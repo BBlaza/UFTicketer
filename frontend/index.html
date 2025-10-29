@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UF Ticketer - Home</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="logo-container">
+                <h1 class="logo">UF Ticketer</h1>
+            </div>
+            <div class="nav-right">
+                <button class="nav-icon-btn" id="friendsBtn">
+                    <i class="fas fa-user-friends"></i>
+                </button>
+                <button class="nav-icon-btn" id="messagesBtn">
+                    <i class="fas fa-envelope"></i>
+                </button>
+                <div class="profile-box" id="profileBtn">
+                    <span class="user-name">Sign in</span>
+                    <i class="fas fa-user-circle"></i>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="hero-section">
+            <div class="search-container">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="searchInput" placeholder="Search for events, concerts, sports..." />
+                    <button class="search-btn" id="searchBtn">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <section class="offers-section">
+            <div class="offers-grid">
+                <!-- Offer cards will be generated here -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Profile Menu Modal -->
+    <div class="modal" id="profileModal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h2>Profile</h2>
+            <div class="profile-menu">
+                <button class="menu-item"><i class="fas fa-user"></i> My Profile</button>
+                <button class="menu-item"><i class="fas fa-ticket-alt"></i> My Tickets</button>
+                <button class="menu-item"><i class="fas fa-cog"></i> Settings</button>
+                <button class="menu-item"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
