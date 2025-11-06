@@ -8,6 +8,7 @@ class Users(models.Model):
     phone = models.CharField(max_length=20, blank=True, null=True)
     status = models.CharField(max_length=100, blank=True, null=True)
     introduction = models.CharField(max_length=1000, blank=True, null=True)
+    picture = models.JSONField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -22,6 +23,7 @@ class Offers(models.Model):
     image_path = models.JSONField(blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     genre = models.CharField(max_length=50, blank=True, null=True)
+    date = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
