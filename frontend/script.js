@@ -1,48 +1,5 @@
-// Sample offers data
-const offers = [
-    {
-        title: "Summer Music Festival",
-        category: "Music",
-        description: "Join us for an amazing 3-day music festival featuring top artists!",
-        price: "$99",
-        icon: "fa-music"
-    },
-    {
-        title: "Basketball Championship",
-        category: "Sports",
-        description: "Witness the ultimate basketball showdown at the arena!",
-        price: "$45",
-        icon: "fa-basketball-ball"
-    },
-    {
-        title: "Comedy Night Special",
-        category: "Comedy",
-        description: "Laugh your heart out with the best comedians in town!",
-        price: "$35",
-        icon: "fa-theater-masks"
-    },
-    {
-        title: "Tech Conference 2024",
-        category: "Technology",
-        description: "Learn from industry leaders and network with professionals.",
-        price: "$199",
-        icon: "fa-laptop-code"
-    },
-    {
-        title: "Classical Concert",
-        category: "Music",
-        description: "Experience the magic of classical music with a live orchestra.",
-        price: "$55",
-        icon: "fa-guitar"
-    },
-    {
-        title: "Theater Performance",
-        category: "Theater",
-        description: "A captivating theatrical experience you won't forget.",
-        price: "$40",
-        icon: "fa-masks-theater"
-    }
-];
+// Offers will be loaded from backend API
+let offers = [];
 
 // DOM Elements
 const profileBtn = document.getElementById('profileBtn');
@@ -56,8 +13,21 @@ const offersGrid = document.querySelector('.offers-grid');
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', () => {
-    displayOffers(offers);
+    fetchOffersAndRender();
 });
+
+async function fetchOffersAndRender() {
+    try {
+        const resp = await fetch('offers.json');
+        const data = await resp.json();
+        // Expecting array of offers directly in the JSON file
+        offers = Array.isArray(data) ? data : [];
+    } catch (e) {
+        // If API fails, keep offers as empty to avoid stale dummy data
+        offers = [];
+    }
+    displayOffers(offers);
+}
 
 // Display offers
 function displayOffers(offersData) {
