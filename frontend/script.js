@@ -18,10 +18,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function fetchOffersAndRender() {
     try {
-        const resp = await fetch('offers.json');
+        // Fetch offers from backend API (DB-backed)
+        const resp = await fetch('/api/offers/');
         const data = await resp.json();
-        // Expecting array of offers directly in the JSON file
-        offers = Array.isArray(data) ? data : [];
+        // API returns { results: [...] }
+        offers = Array.isArray(data.results) ? data.results : [];
     } catch (e) {
         // If API fails, keep offers as empty to avoid stale dummy data
         offers = [];
@@ -36,16 +37,32 @@ function displayOffers(offersData) {
     offersData.forEach(offer => {
         const offerCard = document.createElement('div');
         offerCard.className = 'offer-card';
+        // Choose image source if available, otherwise use icon
+        let imageHtml = `<i class="fas ${offer.icon}"></i>`;
+        try {
+            if (offer.image_path) {
+                // image_path may be an array or string
+                const img = Array.isArray(offer.image_path) ? offer.image_path[0] : offer.image_path;
+                if (img) {
+                    imageHtml = `<img src="${img}" alt="${offer.title}"/>`;
+                }
+            }
+        } catch (err) {
+            imageHtml = `<i class="fas ${offer.icon}"></i>`;
+        }
+
+        const sellerName = offer.seller || 'Unknown';
+        const dateText = offer.date ? new Date(offer.date).toLocaleString() : '';
+
         offerCard.innerHTML = `
-            <div class="offer-image">
-                <i class="fas ${offer.icon}"></i>
-            </div>
+            <div class="offer-image">${imageHtml}</div>
             <div class="offer-content">
-                <div class="offer-category">${offer.category}</div>
-                <div class="offer-title">${offer.title}</div>
-                <div class="offer-description">${offer.description}</div>
+                <div class="offer-category">${offer.category || ''}</div>
+                <div class="offer-title">${offer.title || 'Untitled'}</div>
+                <div class="offer-description">${offer.description || ''}</div>
+                <div class="offer-meta">Seller: ${sellerName} ${dateText ? ' • ' + dateText : ''}</div>
                 <div class="offer-footer">
-                    <div class="offer-price">${offer.price}</div>
+                    <div class="offer-price">${offer.price || ''}</div>
                     <button class="view-btn">View Details</button>
                 </div>
             </div>

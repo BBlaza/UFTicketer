@@ -1,6 +1,9 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+from pathlib import Path
+from django.http import HttpResponse
 
 from .models import Offers
 
@@ -44,7 +47,12 @@ def offers_list(request):
             "title": getattr(offer, "item", None) or "Untitled",
             "category": category,
             "description": getattr(offer, "description", None) or "",
-            "price": "$0",  # price not available in model; default placeholder
+            # format price if available, keep a friendly string otherwise
+            "price": (f"${float(offer.price):.2f}" if getattr(offer, "price", None) is not None else "$0.00"),
+            # seller name (if available)
+            "seller": (getattr(getattr(offer, "seller", None), "name", None) or "Unknown"),
+            # date as ISO string (if available)
+            "date": (offer.date.isoformat() if getattr(offer, "date", None) is not None else None),
             "icon": _icon_for_category(category),
             "image_path": getattr(offer, "image_path", None),
         })
@@ -53,3 +61,19 @@ def offers_list(request):
     # Allow simple cross-origin GETs from the static frontend
     resp["Access-Control-Allow-Origin"] = "*"
     return resp
+
+
+
+def index_html(request):
+    """Return the frontend/index.html file so the root URL serves the static frontend in dev.
+
+    This reads the file from the repository `frontend` folder (two levels above BASE_DIR).
+    """
+    # BASE_DIR in settings is backend/UFTicketer, so go up two levels to repo root
+    frontend_dir = Path(settings.BASE_DIR).parent.parent / 'frontend'
+    index_file = frontend_dir / 'index.html'
+    try:
+        content = index_file.read_text(encoding='utf-8')
+        return HttpResponse(content, content_type='text/html')
+    except FileNotFoundError:
+        return HttpResponse('index.html not found', status=404)
