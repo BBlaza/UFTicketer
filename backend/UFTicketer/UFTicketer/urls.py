@@ -15,10 +15,26 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
-from common.views import offers_list
+from django.urls import path, re_path
+from django.conf import settings
+from django.views.static import serve
+from pathlib import Path
+
+from common.views import offers_list, index_html
+
+# Compute path to the repository frontend folder (repo root /frontend)
+# settings.BASE_DIR points at backend/UFTicketer, so go up two levels
+FRONTEND_DIR = Path(settings.BASE_DIR).parent.parent / 'frontend'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/offers/', offers_list, name='offers-list'),
+    # Serve the static frontend index at the root
+    path('', index_html, name='home'),
+    # During development serve a few frontend assets directly from the frontend folder
+    path('styles.css', serve, {'path': 'styles.css', 'document_root': str(FRONTEND_DIR)}),
+    path('script.js', serve, {'path': 'script.js', 'document_root': str(FRONTEND_DIR)}),
+    path('offers.json', serve, {'path': 'offers.json', 'document_root': str(FRONTEND_DIR)}),
+    # Fallback for other static files in frontend (images, fonts, etc.)
+    re_path(r'^(?P<path>.*\.(?:css|js|json|png|jpg|jpeg|svg|gif))$', serve, {'document_root': str(FRONTEND_DIR)}),
 ]
