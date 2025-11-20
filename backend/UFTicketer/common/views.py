@@ -1,9 +1,13 @@
 from django.http import JsonResponse
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from pathlib import Path
 from django.http import HttpResponse
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.views.decorators.http import require_http_methods
+import json
 
 from .models import Offers
 
@@ -77,3 +81,114 @@ def index_html(request):
         return HttpResponse(content, content_type='text/html')
     except FileNotFoundError:
         return HttpResponse('index.html not found', status=404)
+
+
+@csrf_exempt
+@require_POST
+def login_view(request):
+    """Handle user login using Django's built-in authentication."""
+    try:
+        data = json.loads(request.body)
+        username = data.get('username', '').strip()
+        password = data.get('password', '')
+        
+        if not username or not password:
+            return JsonResponse({'success': False, 'error': 'Username and password are required'}, status=400)
+        
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return JsonResponse({
+                'success': True,
+                'username': user.username,
+                'message': 'Login successful'
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Invalid username or password'}, status=401)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_POST
+def signup_view(request):
+    """Handle user signup using Django's built-in User model."""
+    try:
+        data = json.loads(request.body)
+        username = data.get('username', '').strip()
+        password = data.get('password', '')
+        
+        if not username or not password:
+            return JsonResponse({'success': False, 'error': 'Username and password are required'}, status=400)
+        
+        if len(password) < 8:
+            return JsonResponse({'success': False, 'error': 'Password must be at least 8 characters long'}, status=400)
+        
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({'success': False, 'error': 'Username already exists'}, status=400)
+        
+        user = User.objects.create_user(username=username, password=password)
+        login(request, user)
+        
+        return JsonResponse({
+            'success': True,
+            'username': user.username,
+            'message': 'Account created successfully'
+        })
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_POST
+def logout_view(request):
+    """Handle user logout."""
+    logout(request)
+    return JsonResponse({'success': True, 'message': 'Logged out successfully'})
+
+
+@require_GET
+def check_auth_status(request):
+    """Check if user is authenticated."""
+    if request.user.is_authenticated:
+        return JsonResponse({
+            'authenticated': True,
+            'username': request.user.username
+        })
+    else:
+        return JsonResponse({'authenticated': False})
+
+
+@csrf_exempt
+@require_POST
+def password_reset_request(request):
+    """Handle password reset request (forgot password)."""
+    try:
+        data = json.loads(request.body)
+        username = data.get('username', '').strip()
+        
+        if not username:
+            return JsonResponse({'success': False, 'error': 'Username is required'}, status=400)
+        
+        try:
+            user = User.objects.get(username=username)
+            # In a real application, you would send an email here
+            # For now, we'll just return success
+            return JsonResponse({
+                'success': True,
+                'message': 'If an account exists with this username, a password reset link has been sent.'
+            })
+        except User.DoesNotExist:
+            # Don't reveal if user exists or not for security
+            return JsonResponse({
+                'success': True,
+                'message': 'If an account exists with this username, a password reset link has been sent.'
+            })
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

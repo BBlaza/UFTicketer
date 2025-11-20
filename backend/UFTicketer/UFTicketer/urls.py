@@ -20,7 +20,7 @@ from django.conf import settings
 from django.views.static import serve
 from pathlib import Path
 
-from common.views import offers_list, index_html
+from common.views import offers_list, index_html, login_view, signup_view, logout_view, check_auth_status, password_reset_request
 
 # Compute path to the repository frontend folder (repo root /frontend)
 # settings.BASE_DIR points at backend/UFTicketer, so go up two levels
@@ -29,6 +29,12 @@ FRONTEND_DIR = Path(settings.BASE_DIR).parent.parent / 'frontend'
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/offers/', offers_list, name='offers-list'),
+    # Authentication endpoints
+    path('api/auth/login/', login_view, name='login'),
+    path('api/auth/signup/', signup_view, name='signup'),
+    path('api/auth/logout/', logout_view, name='logout'),
+    path('api/auth/status/', check_auth_status, name='auth-status'),
+    path('api/auth/password-reset/', password_reset_request, name='password-reset'),
     # Serve the static frontend index at the root
     path('', index_html, name='home'),
     # During development serve a few frontend assets directly from the frontend folder

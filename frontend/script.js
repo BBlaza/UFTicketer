@@ -5,15 +5,30 @@ let offers = [];
 const profileBtn = document.getElementById('profileBtn');
 const messagesBtn = document.getElementById('messagesBtn');
 const friendsBtn = document.getElementById('friendsBtn');
-const profileModal = document.getElementById('profileModal');
+const authModal = document.getElementById('authModal');
 const closeModal = document.getElementById('closeModal');
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
 const offersGrid = document.querySelector('.offers-grid');
+const authForm = document.getElementById('authForm');
+const usernameInput = document.getElementById('username');
+const passwordInput = document.getElementById('password');
+const submitBtn = document.getElementById('submitBtn');
+const switchModeBtn = document.getElementById('switchModeBtn');
+const modalTitle = document.getElementById('modalTitle');
+const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+const forgotPasswordGroup = document.getElementById('forgotPasswordGroup');
+const switchModeText = document.getElementById('switchModeText');
+const authMessage = document.getElementById('authMessage');
+
+// Auth state
+let isLoginMode = true;
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', () => {
     fetchOffersAndRender();
+    checkAuthStatus();
+    setupAuthHandlers();
 });
 
 async function fetchOffersAndRender() {
@@ -76,9 +91,22 @@ function displayOffers(offersData) {
     });
 }
 
-// Profile modal handlers
+// Auth modal handlers
 profileBtn.addEventListener('click', () => {
-    profileModal.style.display = 'block';
+    resetAuthForm();
+    authModal.style.display = 'block';
+});
+
+closeModal.addEventListener('click', () => {
+    authModal.style.display = 'none';
+    resetAuthForm();
+});
+
+window.addEventListener('click', (e) => {
+    if (e.target === authModal) {
+        authModal.style.display = 'none';
+        resetAuthForm();
+    }
 });
 
 // Messages button handler
@@ -89,16 +117,6 @@ messagesBtn.addEventListener('click', () => {
 // Friends button handler
 friendsBtn.addEventListener('click', () => {
     alert('Friends feature coming soon!');
-});
-
-closeModal.addEventListener('click', () => {
-    profileModal.style.display = 'none';
-});
-
-window.addEventListener('click', (e) => {
-    if (e.target === profileModal) {
-        profileModal.style.display = 'none';
-    }
 });
 
 // Search functionality
@@ -138,12 +156,141 @@ function performSearch() {
     }
 }
 
-// Menu item click handlers
-document.querySelectorAll('.menu-item').forEach(item => {
-    item.addEventListener('click', () => {
-        const text = item.textContent.trim();
-        alert(`${text} clicked`);
-        profileModal.style.display = 'none';
-    });
-});
+// Auth functions
+function setupAuthHandlers() {
+    authForm.addEventListener('submit', handleAuthSubmit);
+    switchModeBtn.addEventListener('click', toggleAuthMode);
+    forgotPasswordBtn.addEventListener('click', handleForgotPassword);
+}
+
+function toggleAuthMode() {
+    isLoginMode = !isLoginMode;
+    updateAuthModeUI();
+}
+
+function updateAuthModeUI() {
+    if (isLoginMode) {
+        modalTitle.textContent = 'Sign In';
+        submitBtn.textContent = 'Sign In';
+        switchModeText.textContent = "Don't have an account?";
+        switchModeBtn.textContent = 'Sign Up';
+        forgotPasswordGroup.style.display = 'block';
+        passwordInput.setAttribute('autocomplete', 'current-password');
+    } else {
+        modalTitle.textContent = 'Sign Up';
+        submitBtn.textContent = 'Sign Up';
+        switchModeText.textContent = 'Already have an account?';
+        switchModeBtn.textContent = 'Log In';
+        forgotPasswordGroup.style.display = 'none';
+        passwordInput.setAttribute('autocomplete', 'new-password');
+    }
+    clearAuthMessage();
+}
+
+function resetAuthForm() {
+    isLoginMode = true;
+    updateAuthModeUI();
+    authForm.reset();
+    clearAuthMessage();
+}
+
+function clearAuthMessage() {
+    authMessage.textContent = '';
+    authMessage.className = 'auth-message';
+}
+
+function showAuthMessage(message, isError = false) {
+    authMessage.textContent = message;
+    authMessage.className = isError ? 'auth-message error' : 'auth-message success';
+}
+
+async function handleAuthSubmit(e) {
+    e.preventDefault();
+    clearAuthMessage();
+    
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+    
+    if (!username || !password) {
+        showAuthMessage('Please fill in all fields', true);
+        return;
+    }
+    
+    const endpoint = isLoginMode ? '/api/auth/login/' : '/api/auth/signup/';
+    
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+            credentials: 'include', // Include cookies for session
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showAuthMessage(data.message || (isLoginMode ? 'Login successful!' : 'Account created successfully!'), false);
+            // Update profile button text
+            profileBtn.querySelector('.user-name').textContent = data.username;
+            // Close modal after a short delay
+            setTimeout(() => {
+                authModal.style.display = 'none';
+                resetAuthForm();
+            }, 1500);
+        } else {
+            showAuthMessage(data.error || 'An error occurred', true);
+        }
+    } catch (error) {
+        showAuthMessage('Network error. Please try again.', true);
+        console.error('Auth error:', error);
+    }
+}
+
+async function handleForgotPassword() {
+    const username = usernameInput.value.trim();
+    
+    if (!username) {
+        showAuthMessage('Please enter your username first', true);
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/auth/password-reset/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username }),
+            credentials: 'include',
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showAuthMessage(data.message, false);
+        } else {
+            showAuthMessage(data.error || 'An error occurred', true);
+        }
+    } catch (error) {
+        showAuthMessage('Network error. Please try again.', true);
+        console.error('Password reset error:', error);
+    }
+}
+
+async function checkAuthStatus() {
+    try {
+        const response = await fetch('/api/auth/status/', {
+            credentials: 'include',
+        });
+        const data = await response.json();
+        
+        if (data.authenticated) {
+            profileBtn.querySelector('.user-name').textContent = data.username;
+        }
+    } catch (error) {
+        console.error('Auth status check error:', error);
+    }
+}
 
