@@ -10,6 +10,9 @@ class Users(models.Model):
     introduction = models.CharField(max_length=1000, blank=True, null=True)
     picture = models.JSONField(blank=True, null=True)
 
+    def __str__(self) -> str:
+        return self.name or f"User {self.pk}"
+
     class Meta:
         managed = False
         db_table = 'users'
@@ -28,6 +31,9 @@ class Offers(models.Model):
 
     genre = models.CharField(max_length=50, choices=GenreChoices.choices, blank=True, null=True)
     date = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self) -> str:
+        return self.item or f"Offer {self.pk}"
 
     class Meta:
         managed = False

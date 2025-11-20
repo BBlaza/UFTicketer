@@ -74,7 +74,7 @@ function displayOffers(offersData) {
             <div class="offer-content">
                 <div class="offer-genre">${offer.genre || ''}</div>
                 <div class="offer-title">${offer.title || 'Untitled'}</div>
-                <div class="offer-description">${offer.description || ''}</div>
+                <div class="offer-description">${ offer.description || ''})()}</div>
                 <div class="offer-meta">Seller: ${sellerName} ${dateText ? ' • ' + dateText : ''}</div>
                 <div class="offer-footer">
                     <div class="offer-price">${offer.price || ''}</div>

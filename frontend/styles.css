@@ -190,6 +190,12 @@ body {
     color: white;
 }
 
+.offer-image img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
 .offer-content {
     padding: 1.5rem;
 }
@@ -214,6 +220,14 @@ body {
     font-size: 0.95rem;
     line-height: 1.5;
     margin-bottom: 1rem;
+    /* allow multi-line wrapping and clamp to a few lines with ellipsis */
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* show up to 3 lines */
+    line-clamp: 3; /* standard property for compatibility */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
 }
 
 .offer-footer {
