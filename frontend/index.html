@@ -48,17 +48,30 @@
         </section>
     </main>
 
-    <!-- Profile Menu Modal -->
-    <div class="modal" id="profileModal">
+    <!-- Login/Signup Modal -->
+    <div class="modal" id="authModal">
         <div class="modal-content">
             <span class="close" id="closeModal">&times;</span>
-            <h2>Profile</h2>
-            <div class="profile-menu">
-                <button class="menu-item"><i class="fas fa-user"></i> My Profile</button>
-                <button class="menu-item"><i class="fas fa-ticket-alt"></i> My Tickets</button>
-                <button class="menu-item"><i class="fas fa-cog"></i> Settings</button>
-                <button class="menu-item"><i class="fas fa-sign-out-alt"></i> Logout</button>
-            </div>
+            <h2 id="modalTitle">Sign In</h2>
+            <form id="authForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                </div>
+                <div class="form-group" id="forgotPasswordGroup">
+                    <button type="button" id="forgotPasswordBtn" class="forgot-password-btn">Forgot Password?</button>
+                </div>
+                <button type="submit" id="submitBtn" class="submit-btn">Sign In</button>
+                <div class="form-footer">
+                    <span id="switchModeText">Don't have an account?</span>
+                    <button type="button" id="switchModeBtn" class="switch-mode-btn">Sign Up</button>
+                </div>
+                <div id="authMessage" class="auth-message"></div>
+            </form>
         </div>
     </div>
 
