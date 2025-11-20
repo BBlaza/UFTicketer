@@ -1,5 +1,9 @@
 // Offers will be loaded from backend API
 let offers = [];
+let currentPage = 1;
+const pageSize = 9;
+let totalPages = 1;
+let paginationAttached = false;
 
 // DOM Elements
 const profileBtn = document.getElementById('profileBtn');
@@ -42,7 +46,66 @@ async function fetchOffersAndRender() {
         // If API fails, keep offers as empty to avoid stale dummy data
         offers = [];
     }
-    displayOffers(offers);
+    // initialize pagination
+    totalPages = Math.max(1, Math.ceil(offers.length / pageSize));
+    currentPage = 1;
+    updatePageInput();
+    updatePageInfo();
+    if (!paginationAttached) {
+        attachPaginationHandlers();
+        paginationAttached = true;
+    }
+    renderPage(currentPage);
+}
+
+function attachPaginationHandlers() {
+    const prevBtn = document.getElementById('prevPageBtn');
+    const nextBtn = document.getElementById('nextPageBtn');
+    const pageInput = document.getElementById('pageInput');
+
+    if (prevBtn) prevBtn.addEventListener('click', () => goToPage(currentPage - 1));
+    if (nextBtn) nextBtn.addEventListener('click', () => goToPage(currentPage + 1));
+
+    if (pageInput) {
+        pageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const v = parseInt(pageInput.value, 10);
+                if (!isNaN(v)) goToPage(v);
+            }
+        });
+
+        pageInput.addEventListener('blur', () => {
+            const v = parseInt(pageInput.value, 10);
+            if (!isNaN(v)) goToPage(v);
+            else updatePageInput();
+        });
+    }
+}
+
+function updatePageInput() {
+    const pageInput = document.getElementById('pageInput');
+    if (pageInput) pageInput.value = String(currentPage);
+}
+
+function updatePageInfo() {
+    const info = document.getElementById('pageInfo');
+    if (info) info.textContent = `Page ${currentPage} of ${totalPages}`;
+}
+
+function goToPage(page) {
+    const p = Math.max(1, Math.min(totalPages, Number(page)));
+    if (p === currentPage) return;
+    currentPage = p;
+    updatePageInput();
+    renderPage(currentPage);
+}
+
+function renderPage(page) {
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const pageSlice = offers.slice(start, end);
+    displayOffers(pageSlice);
+    updatePageInfo();
 }
 
 // Display offers
