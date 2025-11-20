@@ -12,31 +12,18 @@ import json
 from .models import Offers
 
 
-def _infer_category_from_item(item: str) -> str:
-    text = (item or "").lower()
-    if any(k in text for k in ["music", "concert", "festival", "classical"]):
-        return "Music"
-    if any(k in text for k in ["basketball", "football", "soccer", "sports"]):
-        return "Sports"
-    if any(k in text for k in ["comedy", "standup", "stand-up"]):
-        return "Comedy"
-    if any(k in text for k in ["tech", "conference", "developer", "hackathon"]):
-        return "Technology"
-    if any(k in text for k in ["theater", "theatre", "play"]):
-        return "Theater"
-    return "General"
-
-
-def _icon_for_category(category: str) -> str:
-    mapping = {
-        "Music": "fa-music",
-        "Sports": "fa-basketball-ball",
-        "Comedy": "fa-theater-masks",
-        "Technology": "fa-laptop-code",
-        "Theater": "fa-masks-theater",
-        "General": "fa-ticket-alt",
-    }
-    return mapping.get(category or "General", "fa-ticket-alt")
+def _icon_for_genre(genre: str) -> str:
+    """Map genre values to Font Awesome icons."""
+    if not genre:
+        return "fa-ticket-alt"
+    
+    genre_lower = genre.lower().strip()
+    if "sport" in genre_lower:
+        return "fa-basketball-ball"
+    elif "show" in genre_lower or "performance" in genre_lower:
+        return "fa-theater-masks"
+    else:
+        return "fa-ticket-alt"
 
 
 @csrf_exempt
@@ -45,11 +32,11 @@ def offers_list(request):
     queryset = Offers.objects.all()[:50]
     data = []
     for offer in queryset:
-        category = _infer_category_from_item(getattr(offer, "item", None))
+        genre = getattr(offer, "genre", None) or ""
         data.append({
             "id": offer.id if hasattr(offer, "id") else None,
             "title": getattr(offer, "item", None) or "Untitled",
-            "category": category,
+            "genre": genre,
             "description": getattr(offer, "description", None) or "",
             # format price if available, keep a friendly string otherwise
             "price": (f"${float(offer.price):.2f}" if getattr(offer, "price", None) is not None else "$0.00"),
@@ -57,7 +44,7 @@ def offers_list(request):
             "seller": (getattr(getattr(offer, "seller", None), "name", None) or "Unknown"),
             # date as ISO string (if available)
             "date": (offer.date.isoformat() if getattr(offer, "date", None) is not None else None),
-            "icon": _icon_for_category(category),
+            "icon": _icon_for_genre(genre),
             "image_path": getattr(offer, "image_path", None),
         })
 

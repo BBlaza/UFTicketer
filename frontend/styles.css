@@ -201,11 +201,11 @@ body {
     font-weight: 600;
 }
 
-.offer-category {
+.offer-genre {
     color: #667eea;
     font-size: 0.9rem;
     margin-bottom: 0.5rem;
-    text-transform: uppercase;
+    text-transform: capitalize;
     font-weight: 500;
 }
 

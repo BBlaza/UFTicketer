@@ -72,7 +72,7 @@ function displayOffers(offersData) {
         offerCard.innerHTML = `
             <div class="offer-image">${imageHtml}</div>
             <div class="offer-content">
-                <div class="offer-category">${offer.category || ''}</div>
+                <div class="offer-genre">${offer.genre || ''}</div>
                 <div class="offer-title">${offer.title || 'Untitled'}</div>
                 <div class="offer-description">${offer.description || ''}</div>
                 <div class="offer-meta">Seller: ${sellerName} ${dateText ? ' • ' + dateText : ''}</div>
@@ -140,7 +140,7 @@ function performSearch() {
     
     const filteredOffers = offers.filter(offer => 
         offer.title.toLowerCase().includes(searchTerm) ||
-        offer.category.toLowerCase().includes(searchTerm) ||
+        (offer.genre && offer.genre.toLowerCase().includes(searchTerm)) ||
         offer.description.toLowerCase().includes(searchTerm)
     );
     
