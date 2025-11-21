@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
 import json
 
-from .models import Offers
+from .models import Offers, Users
 
 
 def _icon_for_genre(genre: str) -> str:
@@ -176,6 +176,79 @@ def password_reset_request(request):
                 'success': True,
                 'message': 'If an account exists with this username, a password reset link has been sent.'
             })
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@require_GET
+def get_user_profile(request):
+    """Get user profile information (username and introduction)."""
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': 'Not authenticated'}, status=401)
+    
+    try:
+        # Try to find Users record matching the Django User's username
+        user_profile = Users.objects.filter(name=request.user.username).first()
+        
+        introduction = user_profile.introduction if user_profile else ""
+        
+        return JsonResponse({
+            'success': True,
+            'username': request.user.username,
+            'introduction': introduction or ""
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_POST
+def update_user_profile(request):
+    """Update user profile (username, password, introduction)."""
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': 'Not authenticated'}, status=401)
+    
+    try:
+        data = json.loads(request.body)
+        user = request.user
+        
+        # Update username if provided
+        new_username = data.get('username', '').strip()
+        if new_username and new_username != user.username:
+            if User.objects.filter(username=new_username).exclude(pk=user.pk).exists():
+                return JsonResponse({'success': False, 'error': 'Username already exists'}, status=400)
+            user.username = new_username
+            user.save()
+        
+        # Update password if provided
+        new_password = data.get('password', '').strip()
+        if new_password:
+            if len(new_password) < 8:
+                return JsonResponse({'success': False, 'error': 'Password must be at least 8 characters long'}, status=400)
+            user.set_password(new_password)
+            user.save()
+            # Re-login user after password change
+            login(request, user)
+        
+        # Update introduction in Users table
+        introduction = data.get('introduction', '').strip()
+        if introduction is not None:
+            user_profile, created = Users.objects.get_or_create(name=user.username)
+            user_profile.introduction = introduction
+            user_profile.save()
+        
+        # Get updated introduction
+        user_profile = Users.objects.filter(name=user.username).first()
+        introduction = user_profile.introduction if user_profile else ""
+        
+        return JsonResponse({
+            'success': True,
+            'username': user.username,
+            'introduction': introduction or "",
+            'message': 'Profile updated successfully'
+        })
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
     except Exception as e:
