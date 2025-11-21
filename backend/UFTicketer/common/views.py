@@ -29,7 +29,8 @@ def _icon_for_genre(genre: str) -> str:
 @csrf_exempt
 @require_GET
 def offers_list(request):
-    queryset = Offers.objects.all()[:50]
+    # Only return offers that have no buyer (i.e. available offers)
+    queryset = Offers.objects.filter(buyer__isnull=True)[:50]
     data = []
     for offer in queryset:
         genre = getattr(offer, "genre", None) or ""
