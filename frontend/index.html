@@ -14,15 +14,25 @@
                 <h1 class="logo">UF Ticketer</h1>
             </div>
             <div class="nav-right">
-                <button class="nav-icon-btn" id="friendsBtn">
-                    <i class="fas fa-user-friends"></i>
-                </button>
-                <button class="nav-icon-btn" id="messagesBtn">
-                    <i class="fas fa-envelope"></i>
-                </button>
-                <div class="profile-box" id="profileBtn">
-                    <span class="user-name">Sign in</span>
-                    <i class="fas fa-user-circle"></i>
+                <div class="profile-container">
+                    <div class="profile-box" id="profileBtn">
+                        <span class="user-name">Sign in</span>
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <button class="dropdown-item" id="myProfileBtn">
+                            <i class="fas fa-user"></i> My Profile
+                        </button>
+                        <button class="dropdown-item" id="friendsDropdownBtn">
+                            <i class="fas fa-user-friends"></i> Friends
+                        </button>
+                        <button class="dropdown-item" id="settingsBtn">
+                            <i class="fas fa-cog"></i> Settings
+                        </button>
+                        <button class="dropdown-item" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -79,6 +89,79 @@
                     <button type="button" id="switchModeBtn" class="switch-mode-btn">Sign Up</button>
                 </div>
                 <div id="authMessage" class="auth-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Offer Details Modal -->
+    <div class="modal" id="offerDetailsModal">
+        <div class="modal-content offer-details-modal">
+            <span class="close" id="closeOfferModal">&times;</span>
+            <div id="offerDetailsImage" class="offer-details-image"></div>
+            <div class="offer-details-content">
+                <h2 id="offerDetailsTitle" class="offer-details-title"></h2>
+                <div class="offer-details-info">
+                    <div class="offer-details-item">
+                        <span class="offer-details-label">Seller:</span>
+                        <span id="offerDetailsSeller"></span>
+                    </div>
+                    <div class="offer-details-item">
+                        <span class="offer-details-label">Genre:</span>
+                        <span id="offerDetailsGenre"></span>
+                    </div>
+                </div>
+                <div class="offer-details-description">
+                    <p id="offerDetailsDescription"></p>
+                </div>
+                <div class="offer-details-footer">
+                    <div class="offer-details-price" id="offerDetailsPrice"></div>
+                    <div class="offer-details-date" id="offerDetailsDate"></div>
+                </div>
+                <button id="sendMessageBtn" class="send-message-btn" style="display: none;">
+                    <i class="fas fa-envelope"></i> Send Message to Buyer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Profile Modal -->
+    <div class="modal" id="myProfileModal">
+        <div class="modal-content">
+            <span class="close" id="closeProfileModal">&times;</span>
+            <h2>My Profile</h2>
+            <div class="profile-display">
+                <div class="profile-field">
+                    <label>Username:</label>
+                    <div id="profileUsername" class="profile-value"></div>
+                </div>
+                <div class="profile-field">
+                    <label>Introduction:</label>
+                    <div id="profileIntroduction" class="profile-value"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Page -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content settings-modal">
+            <span class="close" id="closeSettingsModal">&times;</span>
+            <h2>Settings</h2>
+            <form id="settingsForm">
+                <div class="form-group">
+                    <label for="settingsUsername">Username</label>
+                    <input type="text" id="settingsUsername" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="settingsPassword">New Password (leave blank to keep current)</label>
+                    <input type="password" id="settingsPassword" name="password" autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label for="settingsIntroduction">Introduction</label>
+                    <textarea id="settingsIntroduction" name="introduction" rows="4" maxlength="1000"></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Save Changes</button>
+                <div id="settingsMessage" class="auth-message"></div>
             </form>
         </div>
     </div>

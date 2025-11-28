@@ -65,6 +65,10 @@ body {
     background: rgba(102, 126, 234, 0.1);
 }
 
+.profile-container {
+    position: relative;
+}
+
 .profile-box {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 50px;
@@ -91,6 +95,64 @@ body {
 .profile-box i {
     color: white;
     font-size: 1.5rem;
+}
+
+/* Profile Dropdown */
+.profile-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    min-width: 200px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.profile-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-item {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    background: white;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #333;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.dropdown-item:first-child {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.dropdown-item:last-child {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+.dropdown-item:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.dropdown-item i {
+    width: 20px;
+    text-align: center;
 }
 
 /* Main Content */
@@ -210,6 +272,8 @@ body {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
 }
 
 .offer-card:hover {
@@ -220,12 +284,16 @@ body {
 .offer-image {
     width: 100%;
     height: 200px;
+    min-height: 200px;
+    max-height: 200px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 4rem;
     color: white;
+    flex-shrink: 0;
+    overflow: hidden;
 }
 
 .offer-image img{
@@ -236,6 +304,9 @@ body {
 
 .offer-content {
     padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
 .offer-title {
@@ -258,21 +329,25 @@ body {
     font-size: 0.95rem;
     line-height: 1.5;
     margin-bottom: 1rem;
-    /* allow multi-line wrapping and clamp to a few lines with ellipsis */
+    /* allow multi-line wrapping and clamp to 2 lines with ellipsis */
     display: -webkit-box;
-    -webkit-line-clamp: 3; /* show up to 3 lines */
-    line-clamp: 3; /* standard property for compatibility */
+    -webkit-line-clamp: 2; /* show up to 2 lines */
+    line-clamp: 2; /* standard property for compatibility */
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
     word-break: break-word;
+    /* Fixed height to prevent layout shift - approximately 2 lines */
+    min-height: 3em; /* 2 lines * 1.5 line-height = 3em */
+    max-height: 3em;
 }
 
 .offer-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 1rem;
+    margin-top: auto;
+    padding-top: 1rem;
 }
 
 .offer-price {
@@ -319,15 +394,29 @@ body {
     max-width: 400px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
     animation: slideDown 0.3s ease;
+    position: relative;
 }
 
 .close {
     color: #aaa;
-    float: right;
     font-size: 2rem;
     font-weight: bold;
     cursor: pointer;
     transition: color 0.3s ease;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    border: none;
+    padding: 0;
 }
 
 .close:hover {
@@ -338,6 +427,185 @@ body {
     margin-bottom: 1.5rem;
     color: #667eea;
     font-size: 1.8rem;
+}
+
+/* Offer Details Modal Styles */
+.offer-details-modal {
+    max-width: 700px;
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+}
+
+.offer-details-image {
+    width: 100%;
+    height: 350px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    color: white;
+    overflow: hidden;
+}
+
+.offer-details-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.offer-details-image i {
+    font-size: 5rem;
+}
+
+.offer-details-content {
+    padding: 2rem;
+}
+
+.offer-details-title {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+.offer-details-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.offer-details-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.offer-details-label {
+    font-weight: 600;
+    color: #667eea;
+    min-width: 80px;
+}
+
+.offer-details-item span:last-child {
+    color: #333;
+    text-transform: capitalize;
+}
+
+.offer-details-description {
+    margin-bottom: 2rem;
+    color: #666;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.offer-details-description p {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.offer-details-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.offer-details-price {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #764ba2;
+}
+
+.offer-details-date {
+    color: #999;
+    font-size: 0.95rem;
+    font-style: italic;
+}
+
+.send-message-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.875rem 1.5rem;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.send-message-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.send-message-btn:active {
+    transform: translateY(0);
+}
+
+/* My Profile Modal Styles */
+.profile-display {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.profile-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.profile-field label {
+    font-weight: 600;
+    color: #667eea;
+    font-size: 0.95rem;
+}
+
+.profile-value {
+    color: #333;
+    font-size: 1rem;
+    padding: 0.75rem;
+    background: #f5f5f5;
+    border-radius: 8px;
+    min-height: 2rem;
+    word-wrap: break-word;
+}
+
+/* Settings Modal Styles */
+.settings-modal {
+    max-width: 500px;
+}
+
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    outline: none;
+    box-sizing: border-box;
+    resize: vertical;
+}
+
+.form-group textarea:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 /* Auth Form Styles */
