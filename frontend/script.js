@@ -7,8 +7,6 @@ let paginationAttached = false;
 
 // DOM Elements
 const profileBtn = document.getElementById('profileBtn');
-const messagesBtn = document.getElementById('messagesBtn');
-const friendsBtn = document.getElementById('friendsBtn');
 const authModal = document.getElementById('authModal');
 const closeModal = document.getElementById('closeModal');
 const searchInput = document.getElementById('searchInput');
@@ -24,6 +22,25 @@ const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
 const forgotPasswordGroup = document.getElementById('forgotPasswordGroup');
 const switchModeText = document.getElementById('switchModeText');
 const authMessage = document.getElementById('authMessage');
+const offerDetailsModal = document.getElementById('offerDetailsModal');
+const closeOfferModal = document.getElementById('closeOfferModal');
+const profileDropdown = document.getElementById('profileDropdown');
+const myProfileBtn = document.getElementById('myProfileBtn');
+const friendsDropdownBtn = document.getElementById('friendsDropdownBtn');
+const settingsBtn = document.getElementById('settingsBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const myProfileModal = document.getElementById('myProfileModal');
+const closeProfileModal = document.getElementById('closeProfileModal');
+const settingsModal = document.getElementById('settingsModal');
+const closeSettingsModal = document.getElementById('closeSettingsModal');
+const settingsForm = document.getElementById('settingsForm');
+const sendMessageBtn = document.getElementById('sendMessageBtn');
+
+// Store current offer for message functionality
+let currentOffer = null;
+
+// Auth state
+let isAuthenticated = false;
 
 // Auth state
 let isLoginMode = true;
@@ -130,15 +147,14 @@ function displayOffers(offersData) {
         }
 
         const sellerName = offer.seller || 'Unknown';
-        const dateText = offer.date ? new Date(offer.date).toLocaleString() : '';
 
         offerCard.innerHTML = `
             <div class="offer-image">${imageHtml}</div>
             <div class="offer-content">
                 <div class="offer-genre">${offer.genre || ''}</div>
                 <div class="offer-title">${offer.title || 'Untitled'}</div>
-                <div class="offer-description">${ offer.description || ''})()}</div>
-                <div class="offer-meta">Seller: ${sellerName} ${dateText ? ' • ' + dateText : ''}</div>
+                <div class="offer-description">${offer.description || ''}</div>
+                <div class="offer-meta">Seller: ${sellerName}</div>
                 <div class="offer-footer">
                     <div class="offer-price">${offer.price || ''}</div>
                     <button class="view-btn">View Details</button>
@@ -147,17 +163,234 @@ function displayOffers(offersData) {
         `;
         
         offerCard.addEventListener('click', () => {
-            alert(`You clicked on: ${offer.title}`);
+            showOfferDetails(offer);
         });
         
         offersGrid.appendChild(offerCard);
     });
 }
 
-// Auth modal handlers
-profileBtn.addEventListener('click', () => {
-    resetAuthForm();
-    authModal.style.display = 'block';
+// Calculate days ago from a date string
+function getDaysAgo(dateString) {
+    if (!dateString) return 'Date not available';
+    
+    try {
+        const offerDate = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now - offerDate);
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 0) {
+            return 'Posted today';
+        } else if (diffDays === 1) {
+            return 'Posted 1 day ago';
+        } else {
+            return `Posted ${diffDays} days ago`;
+        }
+    } catch (error) {
+        return 'Date not available';
+    }
+}
+
+// Show offer details in modal
+function showOfferDetails(offer) {
+    // Store current offer
+    currentOffer = offer;
+    
+    // Set image
+    const imageContainer = document.getElementById('offerDetailsImage');
+    let imageHtml = `<i class="fas ${offer.icon}"></i>`;
+    try {
+        if (offer.image_path) {
+            const img = Array.isArray(offer.image_path) ? offer.image_path[0] : offer.image_path;
+            if (img) {
+                imageHtml = `<img src="${img}" alt="${offer.title}"/>`;
+            }
+        }
+    } catch (err) {
+        imageHtml = `<i class="fas ${offer.icon}"></i>`;
+    }
+    imageContainer.innerHTML = imageHtml;
+    
+    // Set other details
+    document.getElementById('offerDetailsTitle').textContent = offer.title || 'Untitled';
+    document.getElementById('offerDetailsSeller').textContent = offer.seller || 'Unknown';
+    document.getElementById('offerDetailsGenre').textContent = offer.genre || 'Not specified';
+    document.getElementById('offerDetailsDescription').textContent = offer.description || 'No description available.';
+    document.getElementById('offerDetailsPrice').textContent = offer.price || '$0.00';
+    document.getElementById('offerDetailsDate').textContent = getDaysAgo(offer.date);
+    
+    // Show/hide send message button based on authentication and if user is not the seller
+    if (isAuthenticated && offer.seller) {
+        // Show button if authenticated (we'll check if user is buyer later)
+        sendMessageBtn.style.display = 'block';
+    } else {
+        sendMessageBtn.style.display = 'none';
+    }
+    
+    // Show modal
+    offerDetailsModal.style.display = 'block';
+}
+
+// Offer details modal handlers
+if (closeOfferModal) {
+    closeOfferModal.addEventListener('click', () => {
+        offerDetailsModal.style.display = 'none';
+    });
+}
+
+window.addEventListener('click', (e) => {
+    if (e.target === offerDetailsModal) {
+        offerDetailsModal.style.display = 'none';
+    }
+    if (e.target === myProfileModal) {
+        myProfileModal.style.display = 'none';
+    }
+    if (e.target === settingsModal) {
+        settingsModal.style.display = 'none';
+    }
+});
+
+// My Profile Modal handlers
+if (closeProfileModal) {
+    closeProfileModal.addEventListener('click', () => {
+        myProfileModal.style.display = 'none';
+    });
+}
+
+async function showMyProfile() {
+    try {
+        const response = await fetch('/api/user/profile/', {
+            credentials: 'include',
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('profileUsername').textContent = data.username || 'Not set';
+            document.getElementById('profileIntroduction').textContent = data.introduction || 'No introduction set.';
+            myProfileModal.style.display = 'block';
+        } else {
+            alert('Failed to load profile: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Profile load error:', error);
+        alert('Failed to load profile. Please try again.');
+    }
+}
+
+// Settings Modal handlers
+if (closeSettingsModal) {
+    closeSettingsModal.addEventListener('click', () => {
+        settingsModal.style.display = 'none';
+    });
+}
+
+async function showSettings() {
+    try {
+        const response = await fetch('/api/user/profile/', {
+            credentials: 'include',
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('settingsUsername').value = data.username || '';
+            document.getElementById('settingsIntroduction').value = data.introduction || '';
+            document.getElementById('settingsPassword').value = '';
+            clearSettingsMessage();
+            settingsModal.style.display = 'block';
+        } else {
+            alert('Failed to load settings: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Settings load error:', error);
+        alert('Failed to load settings. Please try again.');
+    }
+}
+
+if (settingsForm) {
+    settingsForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearSettingsMessage();
+        
+        const username = document.getElementById('settingsUsername').value.trim();
+        const password = document.getElementById('settingsPassword').value;
+        const introduction = document.getElementById('settingsIntroduction').value.trim();
+        
+        try {
+            const response = await fetch('/api/user/profile/update/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password || undefined,
+                    introduction: introduction
+                }),
+                credentials: 'include',
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showSettingsMessage('Settings updated successfully!', false);
+                // Update profile button if username changed
+                if (data.username) {
+                    profileBtn.querySelector('.user-name').textContent = data.username;
+                }
+                // Close modal after a delay
+                setTimeout(() => {
+                    settingsModal.style.display = 'none';
+                }, 1500);
+            } else {
+                showSettingsMessage(data.error || 'Failed to update settings', true);
+            }
+        } catch (error) {
+            showSettingsMessage('Network error. Please try again.', true);
+            console.error('Settings update error:', error);
+        }
+    });
+}
+
+function showSettingsMessage(message, isError = false) {
+    const messageEl = document.getElementById('settingsMessage');
+    messageEl.textContent = message;
+    messageEl.className = isError ? 'auth-message error' : 'auth-message success';
+}
+
+function clearSettingsMessage() {
+    const messageEl = document.getElementById('settingsMessage');
+    messageEl.textContent = '';
+    messageEl.className = 'auth-message';
+}
+
+// Send message to buyer handler
+if (sendMessageBtn) {
+    sendMessageBtn.addEventListener('click', () => {
+        if (currentOffer) {
+            alert(`Send message to buyer for: ${currentOffer.title}\n\nThis feature will be implemented soon!`);
+        }
+    });
+}
+
+// Profile button handler - show dropdown if authenticated, otherwise show sign-in modal
+profileBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (isAuthenticated) {
+        // Toggle dropdown
+        profileDropdown.classList.toggle('show');
+    } else {
+        // Show sign-in modal
+        resetAuthForm();
+        authModal.style.display = 'block';
+    }
+});
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+    if (profileDropdown && !profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+        profileDropdown.classList.remove('show');
+    }
 });
 
 closeModal.addEventListener('click', () => {
@@ -172,15 +405,34 @@ window.addEventListener('click', (e) => {
     }
 });
 
-// Messages button handler
-messagesBtn.addEventListener('click', () => {
-    alert('Messages feature coming soon!');
-});
+// Profile dropdown handlers
+if (myProfileBtn) {
+    myProfileBtn.addEventListener('click', async () => {
+        profileDropdown.classList.remove('show');
+        await showMyProfile();
+    });
+}
 
-// Friends button handler
-friendsBtn.addEventListener('click', () => {
-    alert('Friends feature coming soon!');
-});
+if (settingsBtn) {
+    settingsBtn.addEventListener('click', async () => {
+        profileDropdown.classList.remove('show');
+        await showSettings();
+    });
+}
+
+if (friendsDropdownBtn) {
+    friendsDropdownBtn.addEventListener('click', () => {
+        alert('Friends feature coming soon!');
+        profileDropdown.classList.remove('show');
+    });
+}
+
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+        await handleLogout();
+        profileDropdown.classList.remove('show');
+    });
+}
 
 // Search functionality
 searchBtn.addEventListener('click', () => {
@@ -295,7 +547,8 @@ async function handleAuthSubmit(e) {
         
         if (data.success) {
             showAuthMessage(data.message || (isLoginMode ? 'Login successful!' : 'Account created successfully!'), false);
-            // Update profile button text
+            // Update authentication state
+            isAuthenticated = true;
             profileBtn.querySelector('.user-name').textContent = data.username;
             // Close modal after a short delay
             setTimeout(() => {
@@ -350,10 +603,34 @@ async function checkAuthStatus() {
         const data = await response.json();
         
         if (data.authenticated) {
+            isAuthenticated = true;
             profileBtn.querySelector('.user-name').textContent = data.username;
+        } else {
+            isAuthenticated = false;
+            profileBtn.querySelector('.user-name').textContent = 'Sign in';
         }
     } catch (error) {
         console.error('Auth status check error:', error);
+        isAuthenticated = false;
+    }
+}
+
+async function handleLogout() {
+    try {
+        const response = await fetch('/api/auth/logout/', {
+            method: 'POST',
+            credentials: 'include',
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            isAuthenticated = false;
+            profileBtn.querySelector('.user-name').textContent = 'Sign in';
+            // Optionally reload the page or show a message
+            window.location.reload();
+        }
+    } catch (error) {
+        console.error('Logout error:', error);
     }
 }
 
