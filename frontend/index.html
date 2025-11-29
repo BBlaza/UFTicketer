@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UF Ticketer - Home</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="logo-container">
+                <h1 class="logo">UF Ticketer</h1>
+            </div>
+            <div class="nav-right">
+                <div class="profile-container">
+                    <div class="profile-box" id="profileBtn">
+                        <span class="user-name">Sign in</span>
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <button class="dropdown-item" id="myProfileBtn">
+                            <i class="fas fa-user"></i> My Profile
+                        </button>
+                        <button class="dropdown-item" id="friendsDropdownBtn">
+                            <i class="fas fa-user-friends"></i> Friends
+                        </button>
+                        <button class="dropdown-item" id="settingsBtn">
+                            <i class="fas fa-cog"></i> Settings
+                        </button>
+                        <button class="dropdown-item" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="hero-section">
+            <div class="search-container">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="searchInput" placeholder="Search for events, concerts, sports..." />
+                    <button class="search-btn" id="searchBtn">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <section class="offers-section">
+            <div class="offers-grid">
+                <!-- Offer cards will be generated here -->
+            </div>
+            <div class="pagination-container">
+                <div class="pagination">
+                    <button id="prevPageBtn" class="page-arrow" aria-label="Previous page">◀</button>
+                    <input id="pageInput" type="number" min="1" value="1" aria-label="Page number" />
+                    <button id="nextPageBtn" class="page-arrow" aria-label="Next page">▶</button>
+                </div>
+                <div class="page-info" id="pageInfo"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Login/Signup Modal -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h2 id="modalTitle">Sign In</h2>
+            <form id="authForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                </div>
+                <div class="form-group" id="forgotPasswordGroup">
+                    <button type="button" id="forgotPasswordBtn" class="forgot-password-btn">Forgot Password?</button>
+                </div>
+                <button type="submit" id="submitBtn" class="submit-btn">Sign In</button>
+                <div class="form-footer">
+                    <span id="switchModeText">Don't have an account?</span>
+                    <button type="button" id="switchModeBtn" class="switch-mode-btn">Sign Up</button>
+                </div>
+                <div id="authMessage" class="auth-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Offer Details Modal -->
+    <div class="modal" id="offerDetailsModal">
+        <div class="modal-content offer-details-modal">
+            <span class="close" id="closeOfferModal">&times;</span>
+            <div id="offerDetailsImage" class="offer-details-image"></div>
+            <div class="offer-details-content">
+                <h2 id="offerDetailsTitle" class="offer-details-title"></h2>
+                <div class="offer-details-info">
+                    <div class="offer-details-item">
+                        <span class="offer-details-label">Seller:</span>
+                        <span id="offerDetailsSeller"></span>
+                    </div>
+                    <div class="offer-details-item">
+                        <span class="offer-details-label">Genre:</span>
+                        <span id="offerDetailsGenre"></span>
+                    </div>
+                </div>
+                <div class="offer-details-description">
+                    <p id="offerDetailsDescription"></p>
+                </div>
+                <div class="offer-details-footer">
+                    <div class="offer-details-price" id="offerDetailsPrice"></div>
+                    <div class="offer-details-date" id="offerDetailsDate"></div>
+                </div>
+                <button id="sendMessageBtn" class="send-message-btn" style="display: none;">
+                    <i class="fas fa-envelope"></i> Send Message to Buyer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Profile Modal -->
+    <div class="modal" id="myProfileModal">
+        <div class="modal-content">
+            <span class="close" id="closeProfileModal">&times;</span>
+            <h2>My Profile</h2>
+            <div class="profile-display">
+                <div class="profile-field">
+                    <label>Username:</label>
+                    <div id="profileUsername" class="profile-value"></div>
+                </div>
+                <div class="profile-field">
+                    <label>Introduction:</label>
+                    <div id="profileIntroduction" class="profile-value"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Page -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content settings-modal">
+            <span class="close" id="closeSettingsModal">&times;</span>
+            <h2>Settings</h2>
+            <form id="settingsForm">
+                <div class="form-group">
+                    <label for="settingsUsername">Username</label>
+                    <input type="text" id="settingsUsername" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="settingsPassword">New Password (leave blank to keep current)</label>
+                    <input type="password" id="settingsPassword" name="password" autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label for="settingsIntroduction">Introduction</label>
+                    <textarea id="settingsIntroduction" name="introduction" rows="4" maxlength="1000"></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Save Changes</button>
+                <div id="settingsMessage" class="auth-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

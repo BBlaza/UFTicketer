@@ -15,9 +15,36 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, re_path, include
+from django.conf import settings
+from django.views.static import serve
+from pathlib import Path
+
+from common.views import offers_list, index_html, login_view, signup_view, logout_view, check_auth_status, password_reset_request, get_user_profile, update_user_profile
+
+# Compute path to the repository frontend folder (repo root /frontend)
+# settings.BASE_DIR points at backend/UFTicketer, so go up two levels
+FRONTEND_DIR = Path(settings.BASE_DIR).parent.parent / 'frontend'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('dm/', include('messaging.urls')),
+    path('api/offers/', offers_list, name='offers-list'),
+    # Authentication endpoints
+    path('api/auth/login/', login_view, name='login'),
+    path('api/auth/signup/', signup_view, name='signup'),
+    path('api/auth/logout/', logout_view, name='logout'),
+    path('api/auth/status/', check_auth_status, name='auth-status'),
+    path('api/auth/password-reset/', password_reset_request, name='password-reset'),
+    # User profile endpoints
+    path('api/user/profile/', get_user_profile, name='user-profile'),
+    path('api/user/profile/update/', update_user_profile, name='update-profile'),
+    # Serve the static frontend index at the root
+    path('', index_html, name='home'),
+    # During development serve a few frontend assets directly from the frontend folder
+    path('styles.css', serve, {'path': 'styles.css', 'document_root': str(FRONTEND_DIR)}),
+    path('script.js', serve, {'path': 'script.js', 'document_root': str(FRONTEND_DIR)}),
+    path('offers.json', serve, {'path': 'offers.json', 'document_root': str(FRONTEND_DIR)}),
+    # Fallback for other static files in frontend (images, fonts, etc.)
+    re_path(r'^(?P<path>.*\.(?:css|js|json|png|jpg|jpeg|svg|gif))$', serve, {'document_root': str(FRONTEND_DIR)}),
 ]
