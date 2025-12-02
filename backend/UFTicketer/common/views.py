@@ -20,10 +20,17 @@ def _icon_for_genre(genre: str) -> str:
     genre_lower = genre.lower().strip()
     if "sport" in genre_lower:
         return "fa-basketball-ball"
-    elif "show" in genre_lower or "performance" in genre_lower:
+    if "show" in genre_lower or "performance" in genre_lower:
         return "fa-theater-masks"
-    else:
+    # sightseeing (or similar) -> camera icon
+    if "sight" in genre_lower or "sightseeing" in genre_lower:
+        return "fa-camera"
+    # explicit other -> ticket icon
+    if genre_lower == "other" or "other" in genre_lower:
         return "fa-ticket-alt"
+
+    # fallback
+    return "fa-ticket-alt"
 
 
 @csrf_exempt
