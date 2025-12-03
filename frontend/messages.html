@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UF Ticketer - Messages</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/messages.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="logo-container">
+                <a href="/" style="text-decoration: none; color: inherit;">
+                    <h1 class="logo">UF Ticketer</h1>
+                </a>
+            </div>
+            <div class="nav-right">
+                <div class="profile-container">
+                    <div class="profile-box" id="profileBtn">
+                        <span class="user-name">Sign in</span>
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <button class="dropdown-item" id="myProfileBtn">
+                            <i class="fas fa-user"></i> My Profile
+                        </button>
+                        <button class="dropdown-item" id="messagesBtn">
+                            <i class="fas fa-envelope"></i> Messages
+                        </button>
+                        <button class="dropdown-item" id="settingsBtn">
+                            <i class="fas fa-cog"></i> Settings
+                        </button>
+                        <button class="dropdown-item" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="messages-main">
+        <div class="messages-container">
+            <!-- Left Sidebar: Conversation List -->
+            <div class="conversations-sidebar">
+                <h2>Conversations</h2>
+                <div id="conversationsList" class="conversations-list">
+                    <div class="conversations-loading">Loading conversations...</div>
+                </div>
+            </div>
+
+            <!-- Right Side: Messages View -->
+            <div class="messages-view">
+                <div id="noConversationSelected" class="no-conversation-selected">
+                    <i class="fas fa-comments" style="font-size: 4rem; color: #ccc; margin-bottom: 1rem;"></i>
+                    <p>Select a conversation to view messages</p>
+                </div>
+                <div id="messagesPanel" class="messages-panel" style="display: none;">
+                    <div class="messages-header">
+                        <h3 id="conversationPartnerName"></h3>
+                    </div>
+                    <div id="messagesList" class="messages-list">
+                        <!-- Messages will be displayed here -->
+                    </div>
+                    <div class="message-input-container">
+                        <textarea id="messageInput" placeholder="Type your message..." rows="2"></textarea>
+                        <button id="sendMessageBtn" class="send-message-button">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Login/Signup Modal (same as index.html) -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h2 id="modalTitle">Sign In</h2>
+            <form id="authForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                </div>
+                <button type="submit" id="submitBtn" class="submit-btn">Sign In</button>
+                <div class="form-footer">
+                    <span id="switchModeText">Don't have an account?</span>
+                    <button type="button" id="switchModeBtn" class="switch-mode-btn">Sign Up</button>
+                </div>
+                <div id="authMessage" class="auth-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/messages.js"></script>
+</body>
+</html>
+

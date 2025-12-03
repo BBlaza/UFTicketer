@@ -23,11 +23,8 @@
                         <button class="dropdown-item" id="myProfileBtn">
                             <i class="fas fa-user"></i> My Profile
                         </button>
-                        <button class="dropdown-item" id="friendsDropdownBtn">
-                            <i class="fas fa-user-friends"></i> Friends
-                        </button>
-                        <button class="dropdown-item"  id="messagesBtn">
-                            <i class="fas fa-inbox"></i> DMs
+                        <button class="dropdown-item" id="messagesBtn">
+                            <i class="fas fa-envelope"></i> Messages
                         </button>
                         <button class="dropdown-item" id="settingsBtn">
                             <i class="fas fa-cog"></i> Settings
@@ -55,6 +52,12 @@
         </div>
 
         <section class="offers-section">
+            <div class="offers-header">
+                <h2>Available Offers</h2>
+                <button id="addOfferBtn" class="add-offer-btn" style="display: none;">
+                    <i class="fas fa-plus"></i> Add Offer
+                </button>
+            </div>
             <div class="offers-grid">
                 <!-- Offer cards will be generated here -->
             </div>
@@ -82,9 +85,6 @@
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" required autocomplete="current-password">
-                </div>
-                <div class="form-group" id="forgotPasswordGroup">
-                    <button type="button" id="forgotPasswordBtn" class="forgot-password-btn">Forgot Password?</button>
                 </div>
                 <button type="submit" id="submitBtn" class="submit-btn">Sign In</button>
                 <div class="form-footer">
@@ -121,7 +121,7 @@
                     <div class="offer-details-date" id="offerDetailsDate"></div>
                 </div>
                 <button id="sendMessageBtn" class="send-message-btn" style="display: none;">
-                    <i class="fas fa-envelope"></i> Send Message to Buyer
+                    <i class="fas fa-envelope"></i> Send Message to Seller
                 </button>
             </div>
         </div>
@@ -144,35 +144,75 @@
             </div>
         </div>
     </div>
-    <!-- Messages Modal -->
-<div id="messagesModal" class="modal">
-  <div class="modal-content dm-modal">
-    <span id="closeMessagesModal" class="close">&times;</span>
-    <h2>Your DMs</h2>
 
-    <div class="dm-layout">
-      <!-- LEFT: inbox / conversation list -->
-      <div class="dm-sidebar">
-        <h3>Inbox</h3>
-        <div id="inboxList"></div>
-      </div>
-
-      <!-- RIGHT: selected conversation -->
-      <div class="dm-main">
-        <div class="dm-main-header">
-          <label for="conversationSelect">Conversation:</label>
-          <select id="conversationSelect">
-            <option value="">Select a conversation</option>
-          </select>
+    <!-- Add Offer Modal -->
+    <div class="modal" id="addOfferModal">
+        <div class="modal-content">
+            <span class="close" id="closeAddOfferModal">&times;</span>
+            <h2>Add New Offer</h2>
+            <form id="addOfferForm">
+                <div class="form-group">
+                    <label for="offerTitle">Title *</label>
+                    <input type="text" id="offerTitle" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="offerDescription">Description *</label>
+                    <textarea id="offerDescription" name="description" rows="4" maxlength="1000" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="offerPrice">Price *</label>
+                    <input type="text" id="offerPrice" name="price" placeholder="$0.00" required>
+                </div>
+                <div class="form-group">
+                    <label for="offerGenre">Genre *</label>
+                    <select id="offerGenre" name="genre" required>
+                        <option value="">Select a genre</option>
+                        <option value="Show and Performance">Show and Performance</option>
+                        <option value="Sports">Sports</option>
+                        <option value="sightseeing">Sightseeing</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="offerDate">Date *</label>
+                    <input type="datetime-local" id="offerDate" name="date" required>
+                </div>
+                <button type="submit" class="submit-btn">Create Offer</button>
+                <div id="addOfferMessage" class="auth-message"></div>
+            </form>
         </div>
-
-        <div id="conversationArea">
-          <p>Select a conversation to view messages.</p>
-        </div>
-      </div>
     </div>
-  </div>
-</div>
+
+    <!-- Messages Modal -->
+    <div class="modal" id="messagesModal">
+        <div class="modal-content messages-modal">
+            <span class="close" id="closeMessagesModal">&times;</span>
+            <h2>Messages</h2>
+            <div class="messages-container">
+                <div id="messagesTableContainer">
+                    <table class="messages-table">
+                        <thead>
+                            <tr>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Message</th>
+                                <th>Date/Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="messagesTableBody">
+                            <!-- Messages will be loaded here -->
+                        </tbody>
+                    </table>
+                    <div id="messagesLoading" class="messages-loading">
+                        <p>Loading messages...</p>
+                    </div>
+                    <div id="messagesEmpty" class="messages-empty" style="display: none;">
+                        <p>No messages yet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
     <!-- Settings Page -->

@@ -220,6 +220,44 @@ body {
     margin-top: 1.5rem;
 }
 
+.offers-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.offers-header h2 {
+    color: white;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.add-offer-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.add-offer-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.add-offer-btn i {
+    font-size: 1rem;
+}
+
 .offers-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -586,6 +624,64 @@ body {
 }
 
 /* Settings Modal Styles */
+.messages-modal {
+    max-width: 900px;
+    width: 90%;
+}
+
+.messages-container {
+    max-height: 600px;
+    overflow-y: auto;
+    margin-top: 1rem;
+}
+
+.messages-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.messages-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.messages-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.messages-table td {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 0.9rem;
+}
+
+.messages-table tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+.messages-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.messages-loading,
+.messages-empty {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+.messages-loading p,
+.messages-empty p {
+    margin: 0;
+    font-size: 1rem;
+}
+
 .settings-modal {
     max-width: 500px;
 }
@@ -633,6 +729,25 @@ body {
 }
 
 .form-group input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    outline: none;
+    box-sizing: border-box;
+    background-color: white;
+    color: #333;
+    font-family: inherit;
+}
+
+.form-group select:focus {
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
