@@ -15,16 +15,28 @@ def send_dm(request):
         receiver_id = data.get('receiver_id')
         content = (data.get('content') or '').strip()
 
-        if not sender_id or not receiver_id or not content:
+        # Basic validation
+        if not sender_id:
             return JsonResponse(
-                {'success': False, 'error': 'Missing sender, receiver, or content'},
+                {'success': False, 'error': 'Missing sender'},
                 status=400
             )
+        elif not receiver_id:
+            return JsonResponse(
+                {'success': False, 'error': 'Missing receiver'},
+                status=400
+        )
+        elif not content:
+            return JsonResponse(
+                {'success': False, 'error': 'Missing content'},
+                status=400
+        )
 
+        # Lookup auth users
         sender = User.objects.get(id=sender_id)
         receiver = User.objects.get(id=receiver_id)
 
-        msg = DirectMessage.objects.create(
+        msg = Message.objects.create(
             sender=sender,
             receiver=receiver,
             content=content,
@@ -46,6 +58,7 @@ def send_dm(request):
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
     except Exception as e:
+        # debugging purpose
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 def get_conversation(request, user1_id, user2_id):

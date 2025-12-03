@@ -62,6 +62,7 @@ let currentOffer = null;
 let isAuthenticated = false;
 let currentUserId = null;
 
+
 // Auth state
 let isLoginMode = true;
 
@@ -392,14 +393,18 @@ if (sendMessageBtn) {
             return;
         }
 
-        // For now, we need a receiver_id. If your offer object has seller_id from backend, use that.
-        // TEMP: if you don't have seller_id yet, you can hardcode 2 just to test end-to-end.
-        const receiverId = currentOffer.seller_id;
+        const receiverId = currentOffer.seller_id || 2; //Unfortunately the ghost tickets do not have userids but future ticket creations will
 
         const content = prompt(`Message to ${currentOffer.seller || 'seller'}:`);
         if (!content || !content.trim()) {
             return;
         }
+
+        console.log('DEBUG DM payload:', {
+            sender_id: currentUserId,
+            receiver_id: receiverId,
+            content: content.trim(),
+        });
 
         try {
             const resp = await fetch('/dm/send/', {
@@ -408,7 +413,7 @@ if (sendMessageBtn) {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    sender_id: currentUserId,      
+                    sender_id: currentUserId,
                     receiver_id: receiverId,
                     content: content.trim(),
                 }),
@@ -427,6 +432,8 @@ if (sendMessageBtn) {
         }
     });
 }
+
+
 async function showConversationWith(receiverId) {
     const url = `/dm/conversation/${currentUserId}/${receiverId}/`;
     try {
@@ -471,6 +478,16 @@ async function loadInbox() {
     const userId = currentUserId;
     inboxList.innerHTML = 'Loading...';
     conversationArea.innerHTML = '';
+
+    //clear convo
+    if (conversationSelect) {
+        // if default keep otherwisee remove dupes:
+        conversationSelect.innerHTML = '';
+        const defaultOpt = document.createElement('option');
+        defaultOpt.value = '';
+        defaultOpt.textContent = 'Select a conversation';
+        conversationSelect.appendChild(defaultOpt);
+    }
 
     try {
         const resp = await fetch(`/dm/inbox/${currentUserId}/`);
@@ -518,37 +535,105 @@ async function openConversation(partnerId, partnerUsername) {
     conversationArea.innerHTML = 'Loading...';
 
     try {
-        //fetch conversation
+        // fetch conversation
         const resp = await fetch(`/dm/conversation/${currentUserId}/${partnerId}/`);
         if (!resp.ok) {
             conversationArea.innerHTML = '<p>Failed to load conversation.</p>';
             return;
         }
         const data = await resp.json();
-        //no mesg yet
-        if (!Array.isArray(data) || data.length === 0) {
-            conversationArea.innerHTML = `<p>No messages with ${partnerUsername} yet.</p>`;
-            return;
-        }
 
-        const msgsHtml = data.map(m => {
-            const who = m.sender;
-            return `
-                <p><strong>${who}:</strong> ${m.content}</p>
-            `;
-        }).join('');
+        let msgsHtml = '';
+
+        if (!Array.isArray(data) || data.length === 0) {
+            msgsHtml = `<p>No messages with ${partnerUsername} yet.</p>`;
+        } else {
+            msgsHtml = data.map(m => {
+                const who = m.sender;
+                return `
+                    <p><strong>${who}:</strong> ${m.content}</p>
+                `;
+            }).join('');
+        }
 
         conversationArea.innerHTML = `
             <h3>Conversation with ${partnerUsername}</h3>
-            <div class="conversation-messages">
+            <div id="conversationMessages" class="conversation-messages">
                 ${msgsHtml}
             </div>
+            <div class="conversation-input">
+                <input 
+                    type="text" 
+                    id="dmInput" 
+                    placeholder="Type a message..." 
+                    style="width: 80%;"
+                />
+                <button id="dmSendBtn">Send</button>
+            </div>
         `;
+
+        const inputEl = document.getElementById('dmInput');
+        const sendBtnEl = document.getElementById('dmSendBtn');
+
+        // send on button click
+        sendBtnEl.addEventListener('click', () => {
+            sendConversationMessage(partnerId, partnerUsername);
+        });
+
+        // send on Enter
+        inputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                sendConversationMessage(partnerId, partnerUsername);
+            }
+        });
+
+        inputEl.focus();
     } catch (err) {
         console.error('Conversation load error:', err);
         conversationArea.innerHTML = '<p>Failed to load conversation.</p>';
     }
 }
+async function sendConversationMessage(partnerId, partnerUsername) {
+    const inputEl = document.getElementById('dmInput');
+    if (!inputEl) return;
+
+    const content = inputEl.value.trim();
+    if (!content) return;
+
+    if (!currentUserId) {
+        alert('You must be signed in to send messages.');
+        return;
+    }
+    //send msg
+    try {
+        const resp = await fetch('/dm/send/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                sender_id: currentUserId,
+                receiver_id: partnerId,
+                content: content,
+            }),
+        });
+
+        const data = await resp.json();
+
+        if (resp.ok && data.success) {
+            // reload convo
+            inputEl.value = '';
+            openConversation(partnerId, partnerUsername);
+        } else {
+            console.error('sendConversationMessage error:', data);
+            alert('Failed to send message: ' + (data.error || 'Unknown error'));
+        }
+    } catch (err) {
+        console.error('sendConversationMessage error:', err);
+        alert('Network error while sending message.');
+    }
+}
+
 
 // Profile button handler - show dropdown if authenticated, otherwise show sign-in modal
 profileBtn.addEventListener('click', (e) => {
