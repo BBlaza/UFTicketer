@@ -8,13 +8,45 @@ import json
 
 @csrf_exempt
 def send_dm(request):
-    if request.method == 'POST':
+    try:
         data = json.loads(request.body)
-        sender = User.objects.get(id=data['sender_id'])
-        receiver = User.objects.get(id=data['receiver_id'])
-        msg = Message.objects.create(sender=sender, receiver=receiver, content=data['content'])
-        return JsonResponse({'id': msg.id, 'status': 'sent'})
-    return JsonResponse({'error': 'POST required'}, status=400)
+
+        sender_id = data.get('sender_id')
+        receiver_id = data.get('receiver_id')
+        content = (data.get('content') or '').strip()
+
+        if not sender_id or not receiver_id or not content:
+            return JsonResponse(
+                {'success': False, 'error': 'Missing sender, receiver, or content'},
+                status=400
+            )
+
+        sender = User.objects.get(id=sender_id)
+        receiver = User.objects.get(id=receiver_id)
+
+        msg = DirectMessage.objects.create(
+            sender=sender,
+            receiver=receiver,
+            content=content,
+        )
+
+        return JsonResponse({
+            'success': True,
+            'id': msg.id,
+            'sender': sender.username,
+            'receiver': receiver.username,
+            'content': msg.content,
+        })
+
+    except User.DoesNotExist:
+        return JsonResponse(
+            {'success': False, 'error': 'Invalid sender or receiver id'},
+            status=400
+        )
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 def get_conversation(request, user1_id, user2_id):
     messages = Message.objects.filter(
@@ -37,7 +69,6 @@ def inbox(request, user_id):
     messages = (
         Message.objects
         .filter(Q(sender_id=user_id) | Q(receiver_id=user_id))
-        .select_related('sender', 'receiver')
         .order_by('-timestamp')
     )
 

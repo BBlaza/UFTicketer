@@ -26,6 +26,9 @@
                         <button class="dropdown-item" id="friendsDropdownBtn">
                             <i class="fas fa-user-friends"></i> Friends
                         </button>
+                        <button class="dropdown-item"  id="messagesBtn">
+                            <i class="fas fa-inbox"></i> DMs
+                        </button>
                         <button class="dropdown-item" id="settingsBtn">
                             <i class="fas fa-cog"></i> Settings
                         </button>
@@ -141,6 +144,36 @@
             </div>
         </div>
     </div>
+    <!-- Messages Modal -->
+<div id="messagesModal" class="modal">
+  <div class="modal-content dm-modal">
+    <span id="closeMessagesModal" class="close">&times;</span>
+    <h2>Your DMs</h2>
+
+    <div class="dm-layout">
+      <!-- LEFT: inbox / conversation list -->
+      <div class="dm-sidebar">
+        <h3>Inbox</h3>
+        <div id="inboxList"></div>
+      </div>
+
+      <!-- RIGHT: selected conversation -->
+      <div class="dm-main">
+        <div class="dm-main-header">
+          <label for="conversationSelect">Conversation:</label>
+          <select id="conversationSelect">
+            <option value="">Select a conversation</option>
+          </select>
+        </div>
+
+        <div id="conversationArea">
+          <p>Select a conversation to view messages.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
     <!-- Settings Page -->
     <div class="modal" id="settingsModal">

@@ -34,13 +34,33 @@ const closeProfileModal = document.getElementById('closeProfileModal');
 const settingsModal = document.getElementById('settingsModal');
 const closeSettingsModal = document.getElementById('closeSettingsModal');
 const settingsForm = document.getElementById('settingsForm');
-const sendMessageBtn = document.getElementById('sendMessageBtn');
+const messagesBtn = document.getElementById('messagesBtn');
+const messagesModal = document.getElementById('messagesModal');
+const closeMessagesModal = document.getElementById('closeMessagesModal');
+const inboxList = document.getElementById('inboxList');
+const conversationArea = document.getElementById('conversationArea');
+const conversationSelect = document.getElementById('conversationSelect');
 
-// Store current offer for message functionality
+// user picks a conversation from the dropdown
+if (conversationSelect) {
+    conversationSelect.addEventListener('change', () => {
+        const val = conversationSelect.value;
+        if (!val) {
+            conversationArea.innerHTML = '<p>Select a conversation to view messages.</p>';
+            return;
+        }
+        const username =
+            conversationSelect.options[conversationSelect.selectedIndex].textContent;
+        openConversation(val, username);
+    });
+}
+
+// Store current offer being viewed
 let currentOffer = null;
 
 // Auth state
 let isAuthenticated = false;
+let currentUserId = null;
 
 // Auth state
 let isLoginMode = true;
@@ -366,11 +386,168 @@ function clearSettingsMessage() {
 
 // Send message to buyer handler
 if (sendMessageBtn) {
-    sendMessageBtn.addEventListener('click', () => {
-        if (currentOffer) {
-            alert(`Send message to buyer for: ${currentOffer.title}\n\nThis feature will be implemented soon!`);
+    sendMessageBtn.addEventListener('click', async () => {
+        if (!currentOffer) {
+            alert('No offer selected.');
+            return;
+        }
+
+        // For now, we need a receiver_id. If your offer object has seller_id from backend, use that.
+        // TEMP: if you don't have seller_id yet, you can hardcode 2 just to test end-to-end.
+        const receiverId = currentOffer.seller_id;
+
+        const content = prompt(`Message to ${currentOffer.seller || 'seller'}:`);
+        if (!content || !content.trim()) {
+            return;
+        }
+
+        try {
+            const resp = await fetch('/dm/send/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    sender_id: currentUserId,      
+                    receiver_id: receiverId,
+                    content: content.trim(),
+                }),
+            });
+
+            const data = await resp.json();
+
+            if (resp.ok && data.id) {
+                alert('Message sent!');
+            } else {
+                alert('Failed to send message: ' + (data.error || 'Unknown error'));
+            }
+        } catch (err) {
+            console.error('DM error:', err);
+            alert('Network error while sending message.');
         }
     });
+}
+async function showConversationWith(receiverId) {
+    const url = `/dm/conversation/${currentUserId}/${receiverId}/`;
+    try {
+        const resp = await fetch(url);
+        const data = await resp.json();
+        console.log('Conversation:', data);
+        //alert messages
+        alert('Messages:\n' + data.map(m => `${m.sender}: ${m.content}`).join('\n'));
+    } catch (err) {
+        console.error('Error loading conversation', err);
+    }
+}
+
+if (messagesBtn) {
+    messagesBtn.addEventListener('click', async () => {
+        profileDropdown.classList.remove('show');
+
+        //auth check
+        if (!isAuthenticated) {
+            alert('Please sign in to view your DMs.');
+            return;
+        }
+
+        // Load inbox
+        await loadInbox();
+        messagesModal.style.display = 'block';
+    });
+}
+
+//close inbox
+if (closeMessagesModal) {
+    closeMessagesModal.addEventListener('click', () => {
+        messagesModal.style.display = 'none';
+    });
+}
+
+async function loadInbox() {
+    // Debug
+    console.log('loadInbox called. currentUserId =', currentUserId);
+
+    //get user id from global variable
+    const userId = currentUserId;
+    inboxList.innerHTML = 'Loading...';
+    conversationArea.innerHTML = '';
+
+    try {
+        const resp = await fetch(`/dm/inbox/${currentUserId}/`);
+        const data = await resp.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+            inboxList.innerHTML = '<p>No conversations yet.</p>';
+            return;
+        }
+
+        inboxList.innerHTML = '';
+
+        data.forEach(thread => {
+            //left side inbox item
+            const item = document.createElement('div');
+            item.className = 'inbox-item';
+            item.innerHTML = `
+                <strong>${thread.partner_username}</strong><br>
+                <span>${thread.last_message}</span><br>
+                <span class="msg-meta">${new Date(thread.last_timestamp).toLocaleString()}</span>
+            `;
+            item.addEventListener('click', () => {
+                if (conversationSelect) {
+                    conversationSelect.value = String(thread.partner_id);
+                }
+                openConversation(thread.partner_id, thread.partner_username);
+            });
+            inboxList.appendChild(item);
+
+            // right side conversation select option
+            if (conversationSelect) {
+                const opt = document.createElement('option');
+                opt.value = thread.partner_id;
+                opt.textContent = thread.partner_username;
+                conversationSelect.appendChild(opt);
+            }
+        });
+    } catch (err) {
+        console.error('Inbox load error:', err);
+        inboxList.innerHTML = '<p>Failed to load inbox.</p>';
+    }
+}
+async function openConversation(partnerId, partnerUsername) {
+    const userId = currentUserId;
+    conversationArea.innerHTML = 'Loading...';
+
+    try {
+        //fetch conversation
+        const resp = await fetch(`/dm/conversation/${currentUserId}/${partnerId}/`);
+        if (!resp.ok) {
+            conversationArea.innerHTML = '<p>Failed to load conversation.</p>';
+            return;
+        }
+        const data = await resp.json();
+        //no mesg yet
+        if (!Array.isArray(data) || data.length === 0) {
+            conversationArea.innerHTML = `<p>No messages with ${partnerUsername} yet.</p>`;
+            return;
+        }
+
+        const msgsHtml = data.map(m => {
+            const who = m.sender;
+            return `
+                <p><strong>${who}:</strong> ${m.content}</p>
+            `;
+        }).join('');
+
+        conversationArea.innerHTML = `
+            <h3>Conversation with ${partnerUsername}</h3>
+            <div class="conversation-messages">
+                ${msgsHtml}
+            </div>
+        `;
+    } catch (err) {
+        console.error('Conversation load error:', err);
+        conversationArea.innerHTML = '<p>Failed to load conversation.</p>';
+    }
 }
 
 // Profile button handler - show dropdown if authenticated, otherwise show sign-in modal
@@ -555,8 +732,12 @@ async function handleAuthSubmit(e) {
                 authModal.style.display = 'none';
                 resetAuthForm();
             }, 1500);
-        } else {
-            showAuthMessage(data.error || 'An error occurred', true);
+            if (data.user_id) {
+                currentUserId = data.user_id;
+            } else {
+                currentUserId = null;
+            }
+            
         }
     } catch (error) {
         showAuthMessage('Network error. Please try again.', true);
@@ -604,6 +785,9 @@ async function checkAuthStatus() {
         
         if (data.authenticated) {
             isAuthenticated = true;
+            if (data.user_id) {
+                currentUserId = data.user_id;
+            }
             profileBtn.querySelector('.user-name').textContent = data.username;
         } else {
             isAuthenticated = false;

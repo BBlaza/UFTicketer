@@ -34,6 +34,16 @@ def offers_list(request):
     data = []
     for offer in queryset:
         genre = getattr(offer, "genre", None) or ""
+
+# This is your custom Users row, e.g. with fields: id, name, introduction
+        seller_profile = getattr(offer, "seller", None)
+        seller_name = getattr(seller_profile, "name", None)
+
+        # Try to find the matching Django auth user by username
+        auth_user = None
+        if seller_name:
+            auth_user = User.objects.filter(username=seller_name).first()
+
         data.append({
             "id": offer.id if hasattr(offer, "id") else None,
             "title": getattr(offer, "item", None) or "Untitled",
@@ -42,12 +52,16 @@ def offers_list(request):
             # format price if available, keep a friendly string otherwise
             "price": (f"${float(offer.price):.2f}" if getattr(offer, "price", None) is not None else "$0.00"),
             # seller name (if available)
-            "seller": (getattr(getattr(offer, "seller", None), "name", None) or "Unknown"),
+            "seller": seller_name or "Unknown",
+            #seller id (if available)
+            "seller_id": auth_user.id if auth_user else None,
             # date as ISO string (if available)
             "date": (offer.date.isoformat() if getattr(offer, "date", None) is not None else None),
             "icon": _icon_for_genre(genre),
             "image_path": getattr(offer, "image_path", None),
         })
+        
+        
 
     resp = JsonResponse({"results": data})
     # Allow simple cross-origin GETs from the static frontend
@@ -89,6 +103,7 @@ def login_view(request):
             return JsonResponse({
                 'success': True,
                 'username': user.username,
+                'user_id': user.id,
                 'message': 'Login successful'
             })
         else:
@@ -123,6 +138,7 @@ def signup_view(request):
         return JsonResponse({
             'success': True,
             'username': user.username,
+            'user_id': user.id,
             'message': 'Account created successfully'
         })
     except json.JSONDecodeError:
@@ -145,7 +161,8 @@ def check_auth_status(request):
     if request.user.is_authenticated:
         return JsonResponse({
             'authenticated': True,
-            'username': request.user.username
+            'username': request.user.username,
+            'user_id': request.user.id,
         })
     else:
         return JsonResponse({'authenticated': False})
