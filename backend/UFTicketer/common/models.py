@@ -28,6 +28,8 @@ class Offers(models.Model):
     class GenreChoices(models.TextChoices):
         SHOW = 'Show and Performance', 'Show and Performance'
         SPORTS = 'Sports', 'Sports'
+        OTHER = 'other', 'Other'
+        SIGHTSEEING = 'sightseeing', 'Sightseeing'
 
     genre = models.CharField(max_length=50, choices=GenreChoices.choices, blank=True, null=True)
     date = models.DateTimeField(blank=True, null=True)
