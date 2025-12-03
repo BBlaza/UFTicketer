@@ -2,6 +2,7 @@ from django.db import models
 
 # Create your models here.
 class Users(models.Model):
+    id = models.AutoField(primary_key=True, db_column='id')
     name = models.CharField(max_length=100)
     gender = models.CharField(max_length=20, blank=True, null=True)
     email = models.CharField(max_length=255, blank=True, null=True)
@@ -19,6 +20,7 @@ class Users(models.Model):
 
 
 class Offers(models.Model):
+    id = models.AutoField(primary_key=True, db_column='id')
     item = models.CharField(max_length=100, blank=True, null=True)
     seller = models.ForeignKey('Users', models.DO_NOTHING, blank=True, null=True)
     buyer = models.ForeignKey('Users', models.DO_NOTHING, related_name='offers_buyer_set', blank=True, null=True)
