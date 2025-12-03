@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UF Ticketer - My Profile</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/profile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="logo-container">
+                <a href="/" style="text-decoration: none; color: inherit;">
+                    <h1 class="logo">UF Ticketer</h1>
+                </a>
+            </div>
+            <div class="nav-right">
+                <div class="profile-container">
+                    <div class="profile-box" id="profileBtn">
+                        <span class="user-name">Sign in</span>
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <button class="dropdown-item" id="myProfileBtn">
+                            <i class="fas fa-user"></i> My Profile
+                        </button>
+                        <button class="dropdown-item" id="messagesBtn">
+                            <i class="fas fa-envelope"></i> Messages
+                        </button>
+                        <button class="dropdown-item" id="settingsBtn">
+                            <i class="fas fa-cog"></i> Settings
+                        </button>
+                        <button class="dropdown-item" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="profile-main">
+        <div class="profile-container-page">
+            <h1 class="profile-page-title">My Profile</h1>
+            
+            <!-- Profile Information Section -->
+            <div class="profile-info-section">
+                <h2>Account Information</h2>
+                <div class="profile-info-grid">
+                    <div class="profile-info-item">
+                        <label>Username:</label>
+                        <div id="profileUsername" class="profile-value">Loading...</div>
+                    </div>
+                    <div class="profile-info-item">
+                        <label>Password:</label>
+                        <div class="profile-value">
+                            <span>••••••••</span>
+                            <button id="changePasswordBtn" class="change-password-btn">
+                                <i class="fas fa-edit"></i> Change Password
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Offers Section -->
+            <div class="my-offers-section">
+                <h2>My Offers</h2>
+                <div id="myOffersLoading" class="offers-loading">Loading your offers...</div>
+                <div id="myOffersGrid" class="offers-grid">
+                    <!-- Offer cards will be generated here -->
+                </div>
+                <div id="myOffersEmpty" class="offers-empty" style="display: none;">
+                    <p>You haven't created any offers yet.</p>
+                    <a href="/" class="create-offer-link">Create Your First Offer</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Edit Offer Modal -->
+    <div class="modal" id="editOfferModal">
+        <div class="modal-content">
+            <span class="close" id="closeEditOfferModal">&times;</span>
+            <h2>Edit Offer</h2>
+            <form id="editOfferForm">
+                <input type="hidden" id="editOfferId" name="offerId">
+                <div class="form-group">
+                    <label for="editOfferTitle">Title *</label>
+                    <input type="text" id="editOfferTitle" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="editOfferDescription">Description *</label>
+                    <textarea id="editOfferDescription" name="description" rows="4" maxlength="1000" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editOfferPrice">Price *</label>
+                    <input type="text" id="editOfferPrice" name="price" placeholder="$0.00" required>
+                </div>
+                <div class="form-group">
+                    <label for="editOfferGenre">Genre *</label>
+                    <select id="editOfferGenre" name="genre" required>
+                        <option value="">Select a genre</option>
+                        <option value="Show and Performance">Show and Performance</option>
+                        <option value="Sports">Sports</option>
+                        <option value="sightseeing">Sightseeing</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editOfferDate">Date *</label>
+                    <input type="datetime-local" id="editOfferDate" name="date" required>
+                </div>
+                <button type="submit" class="submit-btn">Update Offer</button>
+                <div id="editOfferMessage" class="auth-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal" id="changePasswordModal">
+        <div class="modal-content">
+            <span class="close" id="closeChangePasswordModal">&times;</span>
+            <h2>Change Password</h2>
+            <form id="changePasswordForm">
+                <div class="form-group">
+                    <label for="currentPassword">Current Password</label>
+                    <input type="password" id="currentPassword" name="currentPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" name="newPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm New Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required>
+                </div>
+                <button type="submit" class="submit-btn">Change Password</button>
+                <div id="changePasswordMessage" class="auth-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/profile.js"></script>
+</body>
+</html>
+

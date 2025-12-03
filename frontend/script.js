@@ -18,42 +18,31 @@ const passwordInput = document.getElementById('password');
 const submitBtn = document.getElementById('submitBtn');
 const switchModeBtn = document.getElementById('switchModeBtn');
 const modalTitle = document.getElementById('modalTitle');
-const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
-const forgotPasswordGroup = document.getElementById('forgotPasswordGroup');
 const switchModeText = document.getElementById('switchModeText');
 const authMessage = document.getElementById('authMessage');
 const offerDetailsModal = document.getElementById('offerDetailsModal');
 const closeOfferModal = document.getElementById('closeOfferModal');
 const profileDropdown = document.getElementById('profileDropdown');
 const myProfileBtn = document.getElementById('myProfileBtn');
-const friendsDropdownBtn = document.getElementById('friendsDropdownBtn');
+const messagesBtn = document.getElementById('messagesBtn');
 const settingsBtn = document.getElementById('settingsBtn');
+const addOfferBtn = document.getElementById('addOfferBtn');
+const messagesModal = document.getElementById('messagesModal');
+const closeMessagesModal = document.getElementById('closeMessagesModal');
+const messagesTableBody = document.getElementById('messagesTableBody');
+const messagesLoading = document.getElementById('messagesLoading');
+const messagesEmpty = document.getElementById('messagesEmpty');
+const addOfferModal = document.getElementById('addOfferModal');
+const closeAddOfferModal = document.getElementById('closeAddOfferModal');
+const addOfferForm = document.getElementById('addOfferForm');
 const logoutBtn = document.getElementById('logoutBtn');
 const myProfileModal = document.getElementById('myProfileModal');
 const closeProfileModal = document.getElementById('closeProfileModal');
 const settingsModal = document.getElementById('settingsModal');
 const closeSettingsModal = document.getElementById('closeSettingsModal');
 const settingsForm = document.getElementById('settingsForm');
-const messagesBtn = document.getElementById('messagesBtn');
-const messagesModal = document.getElementById('messagesModal');
-const closeMessagesModal = document.getElementById('closeMessagesModal');
-const inboxList = document.getElementById('inboxList');
-const conversationArea = document.getElementById('conversationArea');
-const conversationSelect = document.getElementById('conversationSelect');
+const sendMessageBtn = document.getElementById('sendMessageBtn');
 
-// user picks a conversation from the dropdown
-if (conversationSelect) {
-    conversationSelect.addEventListener('change', () => {
-        const val = conversationSelect.value;
-        if (!val) {
-            conversationArea.innerHTML = '<p>Select a conversation to view messages.</p>';
-            return;
-        }
-        const username =
-            conversationSelect.options[conversationSelect.selectedIndex].textContent;
-        openConversation(val, username);
-    });
-}
 
 // Store current offer being viewed
 let currentOffer = null;
@@ -71,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchOffersAndRender();
     checkAuthStatus();
     setupAuthHandlers();
+    setupAddOfferHandlers();
 });
 
 async function fetchOffersAndRender() {
@@ -267,6 +257,9 @@ window.addEventListener('click', (e) => {
     if (e.target === myProfileModal) {
         myProfileModal.style.display = 'none';
     }
+    if (e.target === messagesModal) {
+        messagesModal.style.display = 'none';
+    }
     if (e.target === settingsModal) {
         settingsModal.style.display = 'none';
     }
@@ -297,6 +290,70 @@ async function showMyProfile() {
         console.error('Profile load error:', error);
         alert('Failed to load profile. Please try again.');
     }
+}
+
+// Messages Modal handlers
+if (closeMessagesModal) {
+    closeMessagesModal.addEventListener('click', () => {
+        messagesModal.style.display = 'none';
+    });
+}
+
+async function showMessages() {
+    if (!isAuthenticated) {
+        alert('Please sign in to view messages');
+        return;
+    }
+    
+    try {
+        // Show loading state
+        if (messagesLoading) messagesLoading.style.display = 'block';
+        if (messagesEmpty) messagesEmpty.style.display = 'none';
+        if (messagesTableBody) messagesTableBody.innerHTML = '';
+        
+        const response = await fetch('/dm/all/', {
+            credentials: 'include',
+        });
+        const data = await response.json();
+        
+        if (messagesLoading) messagesLoading.style.display = 'none';
+        
+        if (data.success && data.messages && data.messages.length > 0) {
+            if (messagesEmpty) messagesEmpty.style.display = 'none';
+            // Display messages in table
+            data.messages.forEach(msg => {
+                const row = document.createElement('tr');
+                const timestamp = new Date(msg.timestamp);
+                const formattedDate = timestamp.toLocaleString();
+                
+                row.innerHTML = `
+                    <td>${escapeHtml(msg.sender)}</td>
+                    <td>${escapeHtml(msg.receiver)}</td>
+                    <td>${escapeHtml(msg.content)}</td>
+                    <td>${formattedDate}</td>
+                `;
+                if (messagesTableBody) messagesTableBody.appendChild(row);
+            });
+        } else {
+            if (messagesEmpty) messagesEmpty.style.display = 'block';
+        }
+        
+        if (messagesModal) messagesModal.style.display = 'block';
+    } catch (error) {
+        console.error('Messages load error:', error);
+        if (messagesLoading) messagesLoading.style.display = 'none';
+        if (messagesEmpty) {
+            messagesEmpty.style.display = 'block';
+            messagesEmpty.innerHTML = '<p>Failed to load messages. Please try again.</p>';
+        }
+        if (messagesModal) messagesModal.style.display = 'block';
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Settings Modal handlers
@@ -387,6 +444,7 @@ function clearSettingsMessage() {
 
 // Send message to buyer handler
 if (sendMessageBtn) {
+
     sendMessageBtn.addEventListener('click', async () => {
         if (!currentOffer) {
             alert('No offer selected.');
@@ -429,6 +487,9 @@ if (sendMessageBtn) {
         } catch (err) {
             console.error('DM error:', err);
             alert('Network error while sending message.');
+
+
+
         }
     });
 }
@@ -463,176 +524,6 @@ if (messagesBtn) {
     });
 }
 
-//close inbox
-if (closeMessagesModal) {
-    closeMessagesModal.addEventListener('click', () => {
-        messagesModal.style.display = 'none';
-    });
-}
-
-async function loadInbox() {
-    // Debug
-    console.log('loadInbox called. currentUserId =', currentUserId);
-
-    //get user id from global variable
-    const userId = currentUserId;
-    inboxList.innerHTML = 'Loading...';
-    conversationArea.innerHTML = '';
-
-    //clear convo
-    if (conversationSelect) {
-        // if default keep otherwisee remove dupes:
-        conversationSelect.innerHTML = '';
-        const defaultOpt = document.createElement('option');
-        defaultOpt.value = '';
-        defaultOpt.textContent = 'Select a conversation';
-        conversationSelect.appendChild(defaultOpt);
-    }
-
-    try {
-        const resp = await fetch(`/dm/inbox/${currentUserId}/`);
-        const data = await resp.json();
-
-        if (!Array.isArray(data) || data.length === 0) {
-            inboxList.innerHTML = '<p>No conversations yet.</p>';
-            return;
-        }
-
-        inboxList.innerHTML = '';
-
-        data.forEach(thread => {
-            //left side inbox item
-            const item = document.createElement('div');
-            item.className = 'inbox-item';
-            item.innerHTML = `
-                <strong>${thread.partner_username}</strong><br>
-                <span>${thread.last_message}</span><br>
-                <span class="msg-meta">${new Date(thread.last_timestamp).toLocaleString()}</span>
-            `;
-            item.addEventListener('click', () => {
-                if (conversationSelect) {
-                    conversationSelect.value = String(thread.partner_id);
-                }
-                openConversation(thread.partner_id, thread.partner_username);
-            });
-            inboxList.appendChild(item);
-
-            // right side conversation select option
-            if (conversationSelect) {
-                const opt = document.createElement('option');
-                opt.value = thread.partner_id;
-                opt.textContent = thread.partner_username;
-                conversationSelect.appendChild(opt);
-            }
-        });
-    } catch (err) {
-        console.error('Inbox load error:', err);
-        inboxList.innerHTML = '<p>Failed to load inbox.</p>';
-    }
-}
-async function openConversation(partnerId, partnerUsername) {
-    const userId = currentUserId;
-    conversationArea.innerHTML = 'Loading...';
-
-    try {
-        // fetch conversation
-        const resp = await fetch(`/dm/conversation/${currentUserId}/${partnerId}/`);
-        if (!resp.ok) {
-            conversationArea.innerHTML = '<p>Failed to load conversation.</p>';
-            return;
-        }
-        const data = await resp.json();
-
-        let msgsHtml = '';
-
-        if (!Array.isArray(data) || data.length === 0) {
-            msgsHtml = `<p>No messages with ${partnerUsername} yet.</p>`;
-        } else {
-            msgsHtml = data.map(m => {
-                const who = m.sender;
-                return `
-                    <p><strong>${who}:</strong> ${m.content}</p>
-                `;
-            }).join('');
-        }
-
-        conversationArea.innerHTML = `
-            <h3>Conversation with ${partnerUsername}</h3>
-            <div id="conversationMessages" class="conversation-messages">
-                ${msgsHtml}
-            </div>
-            <div class="conversation-input">
-                <input 
-                    type="text" 
-                    id="dmInput" 
-                    placeholder="Type a message..." 
-                    style="width: 80%;"
-                />
-                <button id="dmSendBtn">Send</button>
-            </div>
-        `;
-
-        const inputEl = document.getElementById('dmInput');
-        const sendBtnEl = document.getElementById('dmSendBtn');
-
-        // send on button click
-        sendBtnEl.addEventListener('click', () => {
-            sendConversationMessage(partnerId, partnerUsername);
-        });
-
-        // send on Enter
-        inputEl.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                sendConversationMessage(partnerId, partnerUsername);
-            }
-        });
-
-        inputEl.focus();
-    } catch (err) {
-        console.error('Conversation load error:', err);
-        conversationArea.innerHTML = '<p>Failed to load conversation.</p>';
-    }
-}
-async function sendConversationMessage(partnerId, partnerUsername) {
-    const inputEl = document.getElementById('dmInput');
-    if (!inputEl) return;
-
-    const content = inputEl.value.trim();
-    if (!content) return;
-
-    if (!currentUserId) {
-        alert('You must be signed in to send messages.');
-        return;
-    }
-    //send msg
-    try {
-        const resp = await fetch('/dm/send/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                sender_id: currentUserId,
-                receiver_id: partnerId,
-                content: content,
-            }),
-        });
-
-        const data = await resp.json();
-
-        if (resp.ok && data.success) {
-            // reload convo
-            inputEl.value = '';
-            openConversation(partnerId, partnerUsername);
-        } else {
-            console.error('sendConversationMessage error:', data);
-            alert('Failed to send message: ' + (data.error || 'Unknown error'));
-        }
-    } catch (err) {
-        console.error('sendConversationMessage error:', err);
-        alert('Network error while sending message.');
-    }
-}
 
 
 // Profile button handler - show dropdown if authenticated, otherwise show sign-in modal
@@ -669,9 +560,16 @@ window.addEventListener('click', (e) => {
 
 // Profile dropdown handlers
 if (myProfileBtn) {
-    myProfileBtn.addEventListener('click', async () => {
+    myProfileBtn.addEventListener('click', () => {
         profileDropdown.classList.remove('show');
-        await showMyProfile();
+        window.location.href = '/profile/';
+    });
+}
+
+if (messagesBtn) {
+    messagesBtn.addEventListener('click', () => {
+        profileDropdown.classList.remove('show');
+        window.location.href = '/messages/';
     });
 }
 
@@ -682,12 +580,6 @@ if (settingsBtn) {
     });
 }
 
-if (friendsDropdownBtn) {
-    friendsDropdownBtn.addEventListener('click', () => {
-        alert('Friends feature coming soon!');
-        profileDropdown.classList.remove('show');
-    });
-}
 
 if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
@@ -737,7 +629,6 @@ function performSearch() {
 function setupAuthHandlers() {
     authForm.addEventListener('submit', handleAuthSubmit);
     switchModeBtn.addEventListener('click', toggleAuthMode);
-    forgotPasswordBtn.addEventListener('click', handleForgotPassword);
 }
 
 function toggleAuthMode() {
@@ -751,14 +642,12 @@ function updateAuthModeUI() {
         submitBtn.textContent = 'Sign In';
         switchModeText.textContent = "Don't have an account?";
         switchModeBtn.textContent = 'Sign Up';
-        forgotPasswordGroup.style.display = 'block';
         passwordInput.setAttribute('autocomplete', 'current-password');
     } else {
         modalTitle.textContent = 'Sign Up';
         submitBtn.textContent = 'Sign Up';
         switchModeText.textContent = 'Already have an account?';
         switchModeBtn.textContent = 'Log In';
-        forgotPasswordGroup.style.display = 'none';
         passwordInput.setAttribute('autocomplete', 'new-password');
     }
     clearAuthMessage();
@@ -812,6 +701,10 @@ async function handleAuthSubmit(e) {
             // Update authentication state
             isAuthenticated = true;
             profileBtn.querySelector('.user-name').textContent = data.username;
+            // Show add offer button
+            if (addOfferBtn) {
+                addOfferBtn.style.display = 'block';
+            }
             // Close modal after a short delay
             setTimeout(() => {
                 authModal.style.display = 'none';
@@ -830,37 +723,6 @@ async function handleAuthSubmit(e) {
     }
 }
 
-async function handleForgotPassword() {
-    const username = usernameInput.value.trim();
-    
-    if (!username) {
-        showAuthMessage('Please enter your username first', true);
-        return;
-    }
-    
-    try {
-        const response = await fetch('/api/auth/password-reset/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username }),
-            credentials: 'include',
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showAuthMessage(data.message, false);
-        } else {
-            showAuthMessage(data.error || 'An error occurred', true);
-        }
-    } catch (error) {
-        showAuthMessage('Network error. Please try again.', true);
-        console.error('Password reset error:', error);
-    }
-}
-
 async function checkAuthStatus() {
     try {
         const response = await fetch('/api/auth/status/', {
@@ -874,13 +736,24 @@ async function checkAuthStatus() {
                 currentUserId = data.user_id;
             }
             profileBtn.querySelector('.user-name').textContent = data.username;
+            // Show add offer button if authenticated
+            if (addOfferBtn) {
+                addOfferBtn.style.display = 'block';
+            }
         } else {
             isAuthenticated = false;
             profileBtn.querySelector('.user-name').textContent = 'Sign in';
+            // Hide add offer button if not authenticated
+            if (addOfferBtn) {
+                addOfferBtn.style.display = 'none';
+            }
         }
     } catch (error) {
         console.error('Auth status check error:', error);
         isAuthenticated = false;
+        if (addOfferBtn) {
+            addOfferBtn.style.display = 'none';
+        }
     }
 }
 
@@ -895,11 +768,144 @@ async function handleLogout() {
         if (data.success) {
             isAuthenticated = false;
             profileBtn.querySelector('.user-name').textContent = 'Sign in';
+            // Hide add offer button
+            if (addOfferBtn) {
+                addOfferBtn.style.display = 'none';
+            }
             // Optionally reload the page or show a message
             window.location.reload();
         }
     } catch (error) {
         console.error('Logout error:', error);
+    }
+}
+
+// Add Offer functionality
+function setupAddOfferHandlers() {
+    if (addOfferBtn) {
+        addOfferBtn.addEventListener('click', () => {
+            if (!isAuthenticated) {
+                authModal.style.display = 'block';
+                return;
+            }
+            addOfferModal.style.display = 'block';
+            addOfferForm.reset();
+            clearAddOfferMessage();
+        });
+    }
+    
+    if (closeAddOfferModal) {
+        closeAddOfferModal.addEventListener('click', () => {
+            addOfferModal.style.display = 'none';
+            addOfferForm.reset();
+            clearAddOfferMessage();
+        });
+    }
+    
+    window.addEventListener('click', (e) => {
+        if (e.target === addOfferModal) {
+            addOfferModal.style.display = 'none';
+            addOfferForm.reset();
+            clearAddOfferMessage();
+        }
+    });
+    
+    if (addOfferForm) {
+        addOfferForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearAddOfferMessage();
+            
+            if (!isAuthenticated) {
+                showAddOfferMessage('Please sign in to create an offer', true);
+                return;
+            }
+            
+            const title = document.getElementById('offerTitle').value.trim();
+            const description = document.getElementById('offerDescription').value.trim();
+            const price = document.getElementById('offerPrice').value.trim();
+            const genre = document.getElementById('offerGenre').value.trim();
+            const date = document.getElementById('offerDate').value;
+            
+            // Validate all required fields
+            if (!title) {
+                showAddOfferMessage('Title is required', true);
+                return;
+            }
+            if (!description) {
+                showAddOfferMessage('Description is required', true);
+                return;
+            }
+            if (!price) {
+                showAddOfferMessage('Price is required', true);
+                return;
+            }
+            if (!genre) {
+                showAddOfferMessage('Genre is required', true);
+                return;
+            }
+            if (!date) {
+                showAddOfferMessage('Date is required', true);
+                return;
+            }
+            
+            try {
+                // Format date for API if provided
+                let dateFormatted = null;
+                if (date) {
+                    // Convert local datetime to ISO string
+                    const dateObj = new Date(date);
+                    dateFormatted = dateObj.toISOString();
+                }
+                
+                const response = await fetch('/api/offers/create/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        description: description,
+                        price: price,
+                        genre: genre,
+                        date: dateFormatted
+                    }),
+                    credentials: 'include',
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAddOfferMessage('Offer created successfully!', false);
+                    // Close modal and refresh offers after a delay
+                    setTimeout(() => {
+                        addOfferModal.style.display = 'none';
+                        addOfferForm.reset();
+                        fetchOffersAndRender();
+                    }, 1500);
+                } else {
+                    showAddOfferMessage(data.error || 'Failed to create offer', true);
+                }
+            } catch (error) {
+                showAddOfferMessage('Network error. Please try again.', true);
+                console.error('Create offer error:', error);
+            }
+        });
+    }
+}
+
+function showAddOfferMessage(message, isError = false) {
+    const messageEl = document.getElementById('addOfferMessage');
+    if (messageEl) {
+        messageEl.textContent = message;
+        messageEl.className = isError ? 'auth-message error' : 'auth-message success';
+    }
+}
+
+function clearAddOfferMessage() {
+    const messageEl = document.getElementById('addOfferMessage');
+    if (messageEl) {
+        messageEl.textContent = '';
+        messageEl.className = 'auth-message';
     }
 }
 
