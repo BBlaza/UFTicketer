@@ -78,10 +78,10 @@ WSGI_APPLICATION = 'UFTicketer.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ufticketer',
-        'USER': 'admin',
-        'PASSWORD': 'JiaJia303303!',
-        'HOST': 'ufticketer.cvm6m2qs0ues.us-east-2.rds.amazonaws.com',
+        'NAME': 'xxxxxx',
+        'USER': 'xxxxxx',
+        'PASSWORD': 'xxxxxx',
+        'HOST': 'xxxxxx',
         'PORT': '3306',
     }
 }
